@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Award, Box, ChevronDown, Globe2, Leaf, Lightbulb, Mail, MapPin, Menu, Phone, Send, ShieldCheck, Sparkles, X, Zap } from "lucide-react";
+import { Award, BookOpen, Box, ChevronDown, Globe2, Leaf, Lightbulb, Mail, MapPin, Menu, Phone, Send, ShieldCheck, Sparkles, X, Zap } from "lucide-react";
 
 type Lang = "en" | "tr";
 type Copy = { heroTitle: string; heroAccent: string; heroTail: string; heroText: string; seoTitle: string; seoDescription: string };
@@ -12,7 +12,7 @@ const defaults: Record<Lang, Copy> = {
 
 const routes = [
   { en: ["HOME", ""], tr: ["ANA SAYFA", "tr"] }, { en: ["ABOUT US", "about"], tr: ["HAKKIMIZDA", "tr/hakkimizda"] },
-  { en: ["PRODUCTS", "products"], tr: ["ÜRÜNLER", "tr/urunler"] }, { en: ["QUALITY", "quality"], tr: ["KALİTE", "tr/kalite"] },
+  { en: ["PRODUCTS", "products"], tr: ["ÜRÜNLER", "tr/urunler"] }, { en: ["QUALITY", "kalite"], tr: ["KALİTE", "tr/kalite"] },
   { en: ["BLOG", "blog"], tr: ["BLOG", "tr/blog"] },
   { en: ["CONTACT", "contact"], tr: ["İLETİŞİM", "tr/iletisim"] },
 ] as const;
@@ -76,7 +76,7 @@ const pageContent: Record<string, { eyebrow: string; title: string; body: string
   "tr/urunler/naylon-fermuarlar": { eyebrow: "ÜRÜNLER", title: "Naylon Fermuar", body: ["Giyim, aksesuar ve teknik tekstil uygulamaları için hafif, esnek ve güvenilir naylon fermuar sistemleri."] },
   "products/molded-plastic-zippers": { eyebrow: "PRODUCTS", title: "Molded Plastic Zippers", body: ["Durable molded plastic zipper solutions designed for sportswear, outerwear, bags and everyday performance."] },
   "tr/urunler/kemik-fermuarlar": { eyebrow: "ÜRÜNLER", title: "Kemik Fermuar", body: ["Spor giyim, dış giyim, çanta ve günlük kullanım için tasarlanan dayanıklı kemik fermuar çözümleri."] },
-  "quality": { eyebrow: "ENGINEERED CONFIDENCE", title: "Quality", body: ["From incoming materials to final inspection, every ECEX zipper is controlled through disciplined production and testing processes designed for consistent, dependable performance."] },
+  "kalite": { eyebrow: "ENGINEERED CONFIDENCE", title: "Quality", body: ["From incoming materials to final inspection, every ECEX zipper is controlled through disciplined production and testing processes designed for consistent, dependable performance."] },
   "tr/kalite": { eyebrow: "MÜHENDİSLİKTEN GELEN GÜVEN", title: "Kalite", body: ["Hammadde girişinden son kontrole kadar her ECEX fermuarı; istikrarlı ve güvenilir performans için tasarlanmış disiplinli üretim ve test süreçlerinden geçer."] },
   "blog": { eyebrow: "ECEX JOURNAL", title: "Blog", body: ["News, production insights and developments from the world of ECEX will be shared here."] },
   "tr/blog": { eyebrow: "ECEX GÜNDEM", title: "Blog", body: ["ECEX dünyasından haberler, üretim notları ve gelişmeler burada paylaşılacaktır."] },
@@ -93,9 +93,9 @@ function Logo() { return <a className="logo" href="/" aria-label="ECEX home"><sp
 export function EcexSite({ initialPath }: { initialPath: string }) {
   const lang: Lang = initialPath === "tr" || initialPath.startsWith("tr/") ? "tr" : "en";
   const [menu, setMenu] = useState(false); const [langs, setLangs] = useState(false);
-  const [copy, setCopy] = useState(defaults); const [saved, setSaved] = useState(false);
-  useEffect(() => { const value = localStorage.getItem("ecex-content"); if (value) { try { setCopy(JSON.parse(value)); } catch {} } document.documentElement.lang = lang; }, [lang]);
-  const t = ui[lang]; const c = copy[lang]; const isAdmin = initialPath.endsWith("admin"); const isContact = initialPath === "contact" || initialPath === "tr/iletisim"; const detail = pageContent[initialPath] ?? (initialPath === "about" ? pageContent["about/history"] : initialPath === "tr/hakkimizda" ? pageContent["tr/hakkimizda/tarihce"] : undefined);
+  const [copy, setCopy] = useState(defaults); const [saved, setSaved] = useState(false); const [cmsSections, setCmsSections] = useState<Section[]>([]); const [blogPosts, setBlogPosts] = useState<Post[]>([]);
+  useEffect(() => { const value = localStorage.getItem("ecex-content"); if (value) { try { setCopy(JSON.parse(value)); } catch {} } document.documentElement.lang = lang; Promise.all([fetch("/api/content").then(r=>r.json()),fetch("/api/blog").then(r=>r.json())]).then(([c,b])=>{setCmsSections(c.sections??[]);setBlogPosts(b.posts??[])}).catch(()=>{}); }, [lang]);
+  const t = ui[lang]; const c = copy[lang]; const isAdmin = initialPath.endsWith("admin"); const isContact = initialPath === "contact" || initialPath === "tr/iletisim"; const isBlog = initialPath === "blog" || initialPath === "tr/blog"; const baseDetail = pageContent[initialPath] ?? (initialPath === "about" ? pageContent["about/history"] : initialPath === "tr/hakkimizda" ? pageContent["tr/hakkimizda/tarihce"] : undefined); const cmsKey = ({"about/history":"history","tr/hakkimizda/tarihce":"history","about":"history","tr/hakkimizda":"history","about/vision":"vision","tr/hakkimizda/vizyon":"vision","about/mission":"mission","tr/hakkimizda/misyon":"mission","about/data-protection":"kvkk","tr/hakkimizda/kvkk":"kvkk","about/reference-brands":"references","tr/hakkimizda/referans-markalarimiz":"references"} as Record<string,string>)[initialPath]; const cms = cmsSections.find(s=>s.key===cmsKey); const detail = cms && baseDetail ? { ...baseDetail, title: (lang==="tr"?cms.titleTr:cms.titleEn)||baseDetail.title, body: ((lang==="tr"?cms.bodyTr:cms.bodyEn)||baseDetail.body.join("\n\n")).split(/\n\s*\n/), imageKey: cms.imageKey } : baseDetail;
   const otherRoute = useMemo(() => { const found = [...routes, ...aboutMenu, ...productMenu].find((r) => r[lang][1] === initialPath); return found ? `/${found[lang === "en" ? "tr" : "en"][1]}` : lang === "en" ? "/tr/" : "/"; }, [initialPath, lang]);
   function update(l: Lang, key: keyof Copy, value: string) { setCopy((prev) => ({ ...prev, [l]: { ...prev[l], [key]: value } })); }
   function persist() { localStorage.setItem("ecex-content", JSON.stringify(copy)); setSaved(true); setTimeout(() => setSaved(false), 2500); }
@@ -106,19 +106,23 @@ export function EcexSite({ initialPath }: { initialPath: string }) {
       <nav className={menu ? "nav open" : "nav"}>{routes.map((r, index) => { const sub = index === 1 ? aboutMenu : index === 2 ? productMenu : null; const active = r[lang][1] === initialPath || !!sub?.some((item) => item[lang][1] === initialPath); return <div className={sub ? "nav-item has-submenu" : "nav-item"} key={r.en[0]}><a className={active ? "active" : ""} href={`/${r[lang][1]}`}>{r[lang][0]}{sub && <ChevronDown size={13}/>}</a>{sub && <div className="submenu">{sub.map((item) => <a key={item.en[0]} className={item[lang][1] === initialPath ? "active" : ""} href={`/${item[lang][1]}`}>{item[lang][0]}</a>)}</div>}</div>})}</nav>
       <div className="lang-wrap"><button className="lang-button" onClick={() => setLangs(!langs)} aria-expanded={langs}>{lang.toUpperCase()} <ChevronDown size={14}/></button>{langs && <div className="lang-menu"><a href={lang === "en" ? `/${initialPath}` : otherRoute}>🇬🇧 English</a><a href={lang === "tr" ? `/${initialPath}` : otherRoute}>🇹🇷 Türkçe</a></div>}</div>
     </header>
-    <main>{isContact ? <ContactPage lang={lang}/> : detail ? <ContentPage content={detail} lang={lang}/> : <>
+    <main>{isContact ? <ContactPage lang={lang}/> : isBlog ? <BlogPage lang={lang} posts={blogPosts}/> : detail ? <ContentPage content={detail} lang={lang}/> : <>
       <section className="hero"><div className="hero-shade"/><img src="/hero-v2.png" alt="Precision-engineered zipper opening to a connected world"/><div className="hero-copy"><span>{c.heroTitle}</span><strong>{c.heroAccent}</strong><span>{c.heroTail}</span><p>{c.heroText}</p><a className="primary-button" href={`/${routes[2][lang][1]}`}>{t.explore}</a></div><div className="slide-count"><b>01</b><i/><span>03</span></div></section>
       <Stats lang={lang}/>
       <section className="section products"><div className="section-head"><div><small>{t.products}</small><h2>{t.quality}</h2></div><a className="ghost-button" href={`/${routes[2][lang][1]}`}>{t.all}</a></div><div className="product-grid">{products[lang].map((name, i) => <a className={`product-card product-${i+1}`} key={name} href={i === 0 ? (lang === "en" ? "/products/metal-zippers" : "/tr/urunler/metal-fermuarlar") : `/${routes[2][lang][1]}`}><img src="/hero-v2.png" alt={name}/><div><h3>{name}</h3><span>↗</span></div></a>)}</div></section>
       <section className="world"><div className="world-copy"><small>{t.global}</small><h2>{t.deliver}</h2><p>{t.map}</p><a className="primary-button" href={`/${routes[3][lang][1]}`}>{t.discover}</a></div><div className="map-art"><div className="orbit o1"/><div className="orbit o2"/><div className="hub"><Logo/></div>{[1,2,3,4,5].map(n=><i key={n} className={`point p${n}`}/>)}</div></section>
       <section className="pillars">{t.pillars.map((title,i)=>{const Icon=[Zap,ShieldCheck,Lightbulb,Leaf][i]; return <article className={`pillar-${i+1}`} key={title}><img src="/hero-v2.png" alt=""/><div><Icon/><span><h3>{title}</h3><p>{t.pdesc[i]}</p></span></div></article>})}</section>
-    </>}</main><footer><Logo/><p>© 2026 ECEX. {lang === "en" ? "Engineered in Türkiye." : "Türkiye’de mühendislikle üretildi."}</p><a href={`/${lang === "tr" ? "tr/" : ""}admin`}>{t.admin}</a><b>{t.connect}</b></footer>
+    </>}</main><footer><Logo/><p>© 2026 ECEX. {lang === "en" ? "Engineered in Türkiye." : "Türkiye’de mühendislikle üretildi."}</p><a href="/adminpanel">{t.admin}</a><b>{t.connect}</b></footer>
   </div>;
 }
 
 function Stats({ lang }: { lang: Lang }) { const data = lang === "en" ? [["35+","Years experience"],["1000+","Products"],["70+","Export countries"],["24/7","Production"],["ISO","Certified quality"]] : [["35+","Yıllık deneyim"],["1000+","Ürün"],["70+","İhracat ülkesi"],["24/7","Üretim"],["ISO","Sertifikalı kalite"]]; const icons=[Award,Box,Globe2,Sparkles,ShieldCheck]; return <section className="stats">{data.map(([n,l],i)=>{const Icon=icons[i];return <div key={l}><Icon/><span><b>{n}</b><small>{l}</small></span></div>})}</section> }
 
-function ContentPage({ content, lang }: { content: { eyebrow: string; title: string; body: string[] }; lang: Lang }) { return <article className="content-page"><div className="content-visual"><img src="/hero-v2.png" alt=""/><div><small>{content.eyebrow}</small><h1>{content.title}</h1></div></div><div className="content-layout"><aside><span>ECEX</span><strong>{lang === "en" ? "Since 1988" : "1988’den beri"}</strong></aside><div className="prose">{content.body.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></div></article> }
+function ContentPage({ content, lang }: { content: { eyebrow: string; title: string; body: string[]; imageKey?: string | null }; lang: Lang }) { return <article className="content-page"><div className="content-visual"><img src={content.imageKey?`/api/media/${content.imageKey}`:"/hero-v2.png"} alt=""/><div><small>{content.eyebrow}</small><h1>{content.title}</h1></div></div><div className="content-layout"><aside><span>ECEX</span><strong>{lang === "en" ? "Since 1988" : "1988’den beri"}</strong></aside><div className="prose">{content.body.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></div></article> }
+
+type Section = { key:string; titleEn:string; titleTr:string; bodyEn:string; bodyTr:string; imageKey?:string|null };
+type Post = { id?:number; titleEn:string; titleTr:string; excerptEn:string; excerptTr:string; contentEn:string; contentTr:string; imageKey?:string|null; published:boolean };
+function BlogPage({lang,posts}:{lang:Lang;posts:Post[]}){const tr=lang==="tr";return <article className="blog-page"><div className="content-visual"><img src="/hero-v2.png" alt=""/><div><small>{tr?"ECEX GÜNDEM":"ECEX JOURNAL"}</small><h1>Blog</h1></div></div><section className="blog-grid">{posts.length===0?<div className="blog-empty"><BookOpen/><h2>{tr?"Henüz içerik eklenmedi":"No posts yet"}</h2><p>{tr?"Yeni gelişmeler yakında burada olacak.":"New stories will appear here soon."}</p></div>:posts.map(p=><article className="blog-card" key={p.id}>{p.imageKey&&<img src={`/api/media/${p.imageKey}`} alt=""/>}<div><small>ECEX</small><h2>{tr?p.titleTr:p.titleEn}</h2><p>{tr?p.excerptTr:p.excerptEn}</p><div className="blog-body">{(tr?p.contentTr:p.contentEn).split(/\n\s*\n/).map((x,i)=><p key={i}>{x}</p>)}</div></div></article>)}</section></article>}
 
 const locations = [
   { city: "İstanbul", address: "Firuzköy Mezarlık Altı Cad. No: 10, 34850 Avcılar, İstanbul, Türkiye", map: "https://maps.app.goo.gl/GxSFeT1DNNtGRgu16", embed: "https://www.google.com/maps?q=Firuzk%C3%B6y+Mezarl%C4%B1k+Alt%C4%B1+Cad.+No%3A10+Avc%C4%B1lar+%C4%B0stanbul&output=embed" },
