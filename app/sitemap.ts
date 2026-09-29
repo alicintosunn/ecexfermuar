@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://ecex-premium-zippers.alicintosunai.chatgpt.site";
-  const pairs = [["", "tr"], ["about", "tr/hakkimizda"], ["products", "tr/urunler"], ["industries", "tr/sektorler"], ["innovation", "tr/inovasyon"], ["sustainability", "tr/surdurulebilirlik"], ["contact", "tr/iletisim"], ["products/metal-zippers", "tr/urunler/metal-fermuarlar"]];
+  const pairs = [["", "tr"], ["about", "tr/hakkimizda"], ["about/history", "tr/hakkimizda/tarihce"], ["about/vision", "tr/hakkimizda/vizyon"], ["about/mission", "tr/hakkimizda/misyon"], ["about/data-protection", "tr/hakkimizda/kvkk"], ["about/reference-brands", "tr/hakkimizda/referans-markalarimiz"], ["products", "tr/urunler"], ["products/metal-zippers", "tr/urunler/metal-fermuarlar"], ["products/nylon-zippers", "tr/urunler/naylon-fermuarlar"], ["products/molded-plastic-zippers", "tr/urunler/kemik-fermuarlar"], ["industries", "tr/sektorler"], ["innovation", "tr/inovasyon"], ["sustainability", "tr/surdurulebilirlik"], ["contact", "tr/iletisim"]];
   return pairs.flatMap(([en, tr]) => [
     { url: `${base}/${en}`, alternates: { languages: { en: `${base}/${en}`, tr: `${base}/${tr}`, "x-default": `${base}/${en}` } } },
     { url: `${base}/${tr}`, alternates: { languages: { en: `${base}/${en}`, tr: `${base}/${tr}`, "x-default": `${base}/${en}` } } },
