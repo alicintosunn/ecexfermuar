@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Award, Box, ChevronDown, Globe2, Leaf, Lightbulb, Menu, ShieldCheck, Sparkles, X, Zap } from "lucide-react";
+import { Award, Box, ChevronDown, Globe2, Leaf, Lightbulb, Mail, MapPin, Menu, Phone, Send, ShieldCheck, Sparkles, X, Zap } from "lucide-react";
 
 type Lang = "en" | "tr";
 type Copy = { heroTitle: string; heroAccent: string; heroTail: string; heroText: string; seoTitle: string; seoDescription: string };
@@ -12,8 +12,8 @@ const defaults: Record<Lang, Copy> = {
 
 const routes = [
   { en: ["HOME", ""], tr: ["ANA SAYFA", "tr"] }, { en: ["ABOUT US", "about"], tr: ["HAKKIMIZDA", "tr/hakkimizda"] },
-  { en: ["PRODUCTS", "products"], tr: ["ÜRÜNLER", "tr/urunler"] }, { en: ["INDUSTRIES", "industries"], tr: ["SEKTÖRLER", "tr/sektorler"] },
-  { en: ["INNOVATION", "innovation"], tr: ["İNOVASYON", "tr/inovasyon"] }, { en: ["SUSTAINABILITY", "sustainability"], tr: ["SÜRDÜRÜLEBİLİRLİK", "tr/surdurulebilirlik"] },
+  { en: ["PRODUCTS", "products"], tr: ["ÜRÜNLER", "tr/urunler"] }, { en: ["QUALITY", "quality"], tr: ["KALİTE", "tr/kalite"] },
+  { en: ["BLOG", "blog"], tr: ["BLOG", "tr/blog"] },
   { en: ["CONTACT", "contact"], tr: ["İLETİŞİM", "tr/iletisim"] },
 ] as const;
 
@@ -76,6 +76,10 @@ const pageContent: Record<string, { eyebrow: string; title: string; body: string
   "tr/urunler/naylon-fermuarlar": { eyebrow: "ÜRÜNLER", title: "Naylon Fermuar", body: ["Giyim, aksesuar ve teknik tekstil uygulamaları için hafif, esnek ve güvenilir naylon fermuar sistemleri."] },
   "products/molded-plastic-zippers": { eyebrow: "PRODUCTS", title: "Molded Plastic Zippers", body: ["Durable molded plastic zipper solutions designed for sportswear, outerwear, bags and everyday performance."] },
   "tr/urunler/kemik-fermuarlar": { eyebrow: "ÜRÜNLER", title: "Kemik Fermuar", body: ["Spor giyim, dış giyim, çanta ve günlük kullanım için tasarlanan dayanıklı kemik fermuar çözümleri."] },
+  "quality": { eyebrow: "ENGINEERED CONFIDENCE", title: "Quality", body: ["From incoming materials to final inspection, every ECEX zipper is controlled through disciplined production and testing processes designed for consistent, dependable performance."] },
+  "tr/kalite": { eyebrow: "MÜHENDİSLİKTEN GELEN GÜVEN", title: "Kalite", body: ["Hammadde girişinden son kontrole kadar her ECEX fermuarı; istikrarlı ve güvenilir performans için tasarlanmış disiplinli üretim ve test süreçlerinden geçer."] },
+  "blog": { eyebrow: "ECEX JOURNAL", title: "Blog", body: ["News, production insights and developments from the world of ECEX will be shared here."] },
+  "tr/blog": { eyebrow: "ECEX GÜNDEM", title: "Blog", body: ["ECEX dünyasından haberler, üretim notları ve gelişmeler burada paylaşılacaktır."] },
 };
 
 const products = { en: ["Metal Zippers", "Nylon Zippers", "Plastic Zippers", "Waterproof Zippers", "Invisible Zippers", "Special Zippers"], tr: ["Metal Fermuarlar", "Naylon Fermuarlar", "Plastik Fermuarlar", "Su Geçirmez Fermuarlar", "Gizli Fermuarlar", "Özel Fermuarlar"] };
@@ -91,7 +95,7 @@ export function EcexSite({ initialPath }: { initialPath: string }) {
   const [menu, setMenu] = useState(false); const [langs, setLangs] = useState(false);
   const [copy, setCopy] = useState(defaults); const [saved, setSaved] = useState(false);
   useEffect(() => { const value = localStorage.getItem("ecex-content"); if (value) { try { setCopy(JSON.parse(value)); } catch {} } document.documentElement.lang = lang; }, [lang]);
-  const t = ui[lang]; const c = copy[lang]; const isAdmin = initialPath.endsWith("admin"); const detail = pageContent[initialPath] ?? (initialPath === "about" ? pageContent["about/history"] : initialPath === "tr/hakkimizda" ? pageContent["tr/hakkimizda/tarihce"] : undefined);
+  const t = ui[lang]; const c = copy[lang]; const isAdmin = initialPath.endsWith("admin"); const isContact = initialPath === "contact" || initialPath === "tr/iletisim"; const detail = pageContent[initialPath] ?? (initialPath === "about" ? pageContent["about/history"] : initialPath === "tr/hakkimizda" ? pageContent["tr/hakkimizda/tarihce"] : undefined);
   const otherRoute = useMemo(() => { const found = [...routes, ...aboutMenu, ...productMenu].find((r) => r[lang][1] === initialPath); return found ? `/${found[lang === "en" ? "tr" : "en"][1]}` : lang === "en" ? "/tr/" : "/"; }, [initialPath, lang]);
   function update(l: Lang, key: keyof Copy, value: string) { setCopy((prev) => ({ ...prev, [l]: { ...prev[l], [key]: value } })); }
   function persist() { localStorage.setItem("ecex-content", JSON.stringify(copy)); setSaved(true); setTimeout(() => setSaved(false), 2500); }
@@ -102,7 +106,7 @@ export function EcexSite({ initialPath }: { initialPath: string }) {
       <nav className={menu ? "nav open" : "nav"}>{routes.map((r, index) => { const sub = index === 1 ? aboutMenu : index === 2 ? productMenu : null; const active = r[lang][1] === initialPath || !!sub?.some((item) => item[lang][1] === initialPath); return <div className={sub ? "nav-item has-submenu" : "nav-item"} key={r.en[0]}><a className={active ? "active" : ""} href={`/${r[lang][1]}`}>{r[lang][0]}{sub && <ChevronDown size={13}/>}</a>{sub && <div className="submenu">{sub.map((item) => <a key={item.en[0]} className={item[lang][1] === initialPath ? "active" : ""} href={`/${item[lang][1]}`}>{item[lang][0]}</a>)}</div>}</div>})}</nav>
       <div className="lang-wrap"><button className="lang-button" onClick={() => setLangs(!langs)} aria-expanded={langs}>{lang.toUpperCase()} <ChevronDown size={14}/></button>{langs && <div className="lang-menu"><a href={lang === "en" ? `/${initialPath}` : otherRoute}>🇬🇧 English</a><a href={lang === "tr" ? `/${initialPath}` : otherRoute}>🇹🇷 Türkçe</a></div>}</div>
     </header>
-    <main>{detail ? <ContentPage content={detail} lang={lang}/> : <>
+    <main>{isContact ? <ContactPage lang={lang}/> : detail ? <ContentPage content={detail} lang={lang}/> : <>
       <section className="hero"><div className="hero-shade"/><img src="/hero-v2.png" alt="Precision-engineered zipper opening to a connected world"/><div className="hero-copy"><span>{c.heroTitle}</span><strong>{c.heroAccent}</strong><span>{c.heroTail}</span><p>{c.heroText}</p><a className="primary-button" href={`/${routes[2][lang][1]}`}>{t.explore}</a></div><div className="slide-count"><b>01</b><i/><span>03</span></div></section>
       <Stats lang={lang}/>
       <section className="section products"><div className="section-head"><div><small>{t.products}</small><h2>{t.quality}</h2></div><a className="ghost-button" href={`/${routes[2][lang][1]}`}>{t.all}</a></div><div className="product-grid">{products[lang].map((name, i) => <a className={`product-card product-${i+1}`} key={name} href={i === 0 ? (lang === "en" ? "/products/metal-zippers" : "/tr/urunler/metal-fermuarlar") : `/${routes[2][lang][1]}`}><img src="/hero-v2.png" alt={name}/><div><h3>{name}</h3><span>↗</span></div></a>)}</div></section>
@@ -115,5 +119,26 @@ export function EcexSite({ initialPath }: { initialPath: string }) {
 function Stats({ lang }: { lang: Lang }) { const data = lang === "en" ? [["35+","Years experience"],["1000+","Products"],["70+","Export countries"],["24/7","Production"],["ISO","Certified quality"]] : [["35+","Yıllık deneyim"],["1000+","Ürün"],["70+","İhracat ülkesi"],["24/7","Üretim"],["ISO","Sertifikalı kalite"]]; const icons=[Award,Box,Globe2,Sparkles,ShieldCheck]; return <section className="stats">{data.map(([n,l],i)=>{const Icon=icons[i];return <div key={l}><Icon/><span><b>{n}</b><small>{l}</small></span></div>})}</section> }
 
 function ContentPage({ content, lang }: { content: { eyebrow: string; title: string; body: string[] }; lang: Lang }) { return <article className="content-page"><div className="content-visual"><img src="/hero-v2.png" alt=""/><div><small>{content.eyebrow}</small><h1>{content.title}</h1></div></div><div className="content-layout"><aside><span>ECEX</span><strong>{lang === "en" ? "Since 1988" : "1988’den beri"}</strong></aside><div className="prose">{content.body.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></div></article> }
+
+const locations = [
+  { city: "İstanbul", address: "Firuzköy Mezarlık Altı Cad. No: 10, 34850 Avcılar, İstanbul, Türkiye", map: "https://maps.app.goo.gl/GxSFeT1DNNtGRgu16", embed: "https://www.google.com/maps?q=Firuzk%C3%B6y+Mezarl%C4%B1k+Alt%C4%B1+Cad.+No%3A10+Avc%C4%B1lar+%C4%B0stanbul&output=embed" },
+  { city: "Kütahya", address: "Çobanköy Mevkii, 12. Cadde Organize Sanayi Bölgesi No:1, 43302 Çobanköy/Tavşanlı/Kütahya", map: "https://maps.app.goo.gl/fHwUYRAL5aTVVBHX6", embed: "https://www.google.com/maps?q=%C3%87obank%C3%B6y+Mevkii+12.+Cadde+Organize+Sanayi+B%C3%B6lgesi+No%3A1+Tav%C5%9Fanl%C4%B1+K%C3%BCtahya&output=embed" },
+  { city: "İzmir", address: "Basketbol Sok. No:17-12 Olimpiyat Evleri, Balçova/İzmir" },
+];
+
+function ContactPage({ lang }: { lang: Lang }) {
+  const tr = lang === "tr";
+  function sendMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); const data = new FormData(event.currentTarget);
+    const subject = encodeURIComponent(`[ECEX Website] ${data.get("subject")}`);
+    const body = encodeURIComponent(`${tr ? "Ad Soyad" : "Full Name"}: ${data.get("name")}\n${tr ? "E-Posta" : "Email"}: ${data.get("email")}\n${tr ? "Telefon" : "Phone"}: ${data.get("phone")}\n\n${data.get("message")}`);
+    window.location.href = `mailto:info@ecefermuar.com.tr?subject=${subject}&body=${body}`;
+  }
+  return <article className="contact-page">
+    <div className="content-visual"><img src="/hero-v2.png" alt=""/><div><small>{tr ? "BİZE ULAŞIN" : "GET IN TOUCH"}</small><h1>{tr ? "İletişim" : "Contact"}</h1></div></div>
+    <section className="location-section"><div className="contact-heading"><small>{tr ? "OFİSLERİMİZ" : "OUR LOCATIONS"}</small><h2>{tr ? "Size en yakın ECEX noktası" : "Find your nearest ECEX location"}</h2></div><div className="location-grid">{locations.map((location) => <article className="location-card" key={location.city}>{location.embed && <iframe src={location.embed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Ece Zipper ${location.city} ${tr ? "haritası" : "map"}`}/>}<div><h3>Ece Zipper {location.city}</h3><p><MapPin/>{location.address}</p><a href="tel:+902124282340"><Phone/>+90 212 428 23 40</a>{location.map && <a className="map-link" href={location.map} target="_blank" rel="noreferrer">{tr ? "Google Haritalar’da aç" : "Open in Google Maps"}</a>}</div></article>)}</div></section>
+    <section className="contact-form-section"><div><small>{tr ? "BİZE ULAŞIN" : "CONTACT US"}</small><h2>{tr ? "Nasıl yardımcı olabiliriz?" : "How can we help?"}</h2><p>{tr ? "Formu doldurun; mesajınız e-posta uygulamanız üzerinden doğrudan ECEX ekibine iletilsin." : "Complete the form to send your message directly to the ECEX team through your email application."}</p><a href="mailto:info@ecefermuar.com.tr"><Mail/>info@ecefermuar.com.tr</a></div><form onSubmit={sendMessage}><div className="form-row"><label><span>{tr ? "Ad Soyad" : "Full Name"}</span><input name="name" required autoComplete="name"/></label><label><span>{tr ? "E-Posta" : "Email"}</span><input name="email" type="email" required autoComplete="email"/></label></div><div className="form-row"><label><span>{tr ? "Telefon" : "Phone"}</span><input name="phone" type="tel" required autoComplete="tel"/></label><label><span>{tr ? "Konu" : "Subject"}</span><input name="subject" required/></label></div><label><span>{tr ? "Mesaj" : "Message"}</span><textarea name="message" required rows={6}/></label><button className="primary-button" type="submit"><Send/>{tr ? "GÖNDER" : "SEND MESSAGE"}</button></form></section>
+  </article>;
+}
 
 function Admin({ lang, copy, update, persist, saved }: { lang: Lang; copy: Record<Lang,Copy>; update:(l:Lang,k:keyof Copy,v:string)=>void; persist:()=>void; saved:boolean }) { const t=ui[lang]; return <div className="admin"><header><Logo/><a href={lang === "en" ? "/" : "/tr/"}>← {lang === "en" ? "Back to site" : "Siteye dön"}</a></header><main><div className="admin-title"><small>ECEX CMS</small><h1>{t.admin}</h1><p>{lang === "en" ? "Every field clearly separates the English and Turkish versions." : "Her alan İngilizce ve Türkçe karşılıkları açıkça ayırır."}</p></div><div className="editor-grid">{(["en","tr"] as Lang[]).map(l=><section key={l}><h2>{l === "en" ? `🇬🇧 ${t.english}` : `🇹🇷 ${t.turkish}`}</h2>{Object.entries(copy[l]).map(([key,value])=><label key={key}><span>{key.replace(/([A-Z])/g," $1")}</span>{key.includes("Description") || key === "heroText" ? <textarea value={value} onChange={e=>update(l,key as keyof Copy,e.target.value)}/> : <input value={value} onChange={e=>update(l,key as keyof Copy,e.target.value)}/>}</label>)}</section>)}</div><button className="primary-button save" onClick={persist}>{t.save}</button>{saved&&<output>{t.saved}</output>}</main></div> }
