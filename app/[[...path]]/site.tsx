@@ -12,7 +12,7 @@ const defaults: Record<Lang, Copy> = {
 
 const routes = [
   { en: ["HOME", ""], tr: ["ANA SAYFA", "tr"] }, { en: ["ABOUT US", "about"], tr: ["HAKKIMIZDA", "tr/hakkimizda"] },
-  { en: ["QUALITY", "kalite"], tr: ["KALİTE", "tr/kalite"] },
+  { en: ["PRODUCTS", "products"], tr: ["ÜRÜNLER", "tr/urunler"] }, { en: ["QUALITY", "kalite"], tr: ["KALİTE", "tr/kalite"] },
   { en: ["BLOG", "blog"], tr: ["BLOG", "tr/blog"] },
   { en: ["CONTACT", "contact"], tr: ["İLETİŞİM", "tr/iletisim"] },
 ] as const;
@@ -27,8 +27,8 @@ const aboutMenu = [
 
 const productMenu = [
   { en: ["METAL ZIPPERS", "products/metal-zippers"], tr: ["METAL FERMUAR", "tr/urunler/metal-fermuarlar"] },
-  { en: ["NYLON ZIPPERS", "products/nylon-zippers"], tr: ["NAYLON FERMUAR", "tr/urunler/naylon-fermuarlar"] },
   { en: ["MOLDED PLASTIC ZIPPERS", "products/molded-plastic-zippers"], tr: ["KEMİK FERMUAR", "tr/urunler/kemik-fermuarlar"] },
+  { en: ["NYLON ZIPPERS", "products/nylon-zippers"], tr: ["NAYLON FERMUAR", "tr/urunler/naylon-fermuarlar"] },
 ] as const;
 
 const qualityMenu = [
@@ -115,14 +115,14 @@ export function EcexSite({ initialPath }: { initialPath: string }) {
   if (isAdmin) return <Admin lang={lang} copy={copy} update={update} persist={persist} saved={saved} />;
   return <div className="site-shell">
     <header className="header"><Logo logoKey={logoKey}/><button className="mobile-toggle" onClick={() => setMenu(!menu)} aria-label="Toggle menu">{menu ? <X/> : <Menu/>}</button>
-      <nav className={menu ? "nav open" : "nav"}>{routes.map((r, index) => { const sub = index === 1 ? aboutMenu : index===2?qualityMenu:null; const active = r[lang][1] === initialPath || !!sub?.some((item) => item[lang][1] === initialPath); return <div className={sub ? "nav-item has-submenu" : "nav-item"} key={r.en[0]}><a className={active ? "active" : ""} href={`/${r[lang][1]}`}>{r[lang][0]}{sub && <ChevronDown size={13}/>}</a>{sub && <div className="submenu">{sub.map((item) => <a key={item.en[0]} className={item[lang][1] === initialPath ? "active" : ""} href={`/${item[lang][1]}`}>{item[lang][0]}</a>)}</div>}</div>})}</nav>
+      <nav className={menu ? "nav open" : "nav"}>{routes.map((r, index) => { const sub = index === 1 ? aboutMenu : index === 2 ? productMenu : index===3?qualityMenu:null; const active = r[lang][1] === initialPath || !!sub?.some((item) => item[lang][1] === initialPath); return <div className={sub ? "nav-item has-submenu" : "nav-item"} key={r.en[0]}><a className={active ? "active" : ""} href={`/${r[lang][1]}`}>{r[lang][0]}{sub && <ChevronDown size={13}/>}</a>{sub && <div className="submenu">{sub.map((item) => <a key={item.en[0]} className={item[lang][1] === initialPath ? "active" : ""} href={`/${item[lang][1]}`}>{item[lang][0]}</a>)}</div>}</div>})}</nav>
       <div className="lang-wrap"><button className="lang-button" onClick={() => setLangs(!langs)} aria-expanded={langs}>{lang.toUpperCase()} <ChevronDown size={14}/></button>{langs && <div className="lang-menu"><a href={lang === "en" ? `/${initialPath}` : otherRoute}>🇬🇧 English</a><a href={lang === "tr" ? `/${initialPath}` : otherRoute}>🇹🇷 Türkçe</a></div>}</div>
     </header>
     <main>{isContact ? <ContactPage lang={lang}/> : isBlog ? <BlogPage lang={lang} posts={blogPosts}/> : isProductDetail&&baseDetail ? <ProductDetail content={baseDetail} cms={cms} lang={lang} category={cmsKey.replace("product_","")}/> : detail ? <ContentPage content={detail} lang={lang}/> : <>
       <section className="hero"><div className="hero-shade"/><img src="/hero-v2.png" alt="Precision-engineered zipper opening to a connected world"/><div className="hero-copy"><span>{c.heroTitle}</span><strong>{c.heroAccent}</strong><span>{c.heroTail}</span><p>{c.heroText}</p><a className="primary-button" href={lang==="en"?"/products":"/tr/urunler"}>{t.explore}</a></div><div className="slide-count"><b>01</b><i/><span>03</span></div></section>
       <Stats lang={lang}/>
       <section className="section products"><div className="section-head"><div><small>{t.products}</small><h2>{t.quality}</h2></div><a className="ghost-button" href={lang==="en"?"/products":"/tr/urunler"}>{t.all}</a></div><div className="product-grid">{products[lang].map((name, i) => <a className={`product-card product-${i+1}`} key={name} href={i === 0 ? (lang === "en" ? "/products/metal-zippers" : "/tr/urunler/metal-fermuarlar") : (lang==="en"?"/products":"/tr/urunler")}><img src="/hero-v2.png" alt={name}/><div><h3>{name}</h3><span>↗</span></div></a>)}</div></section>
-      <section className="world"><div className="world-copy"><small>{t.global}</small><h2>{t.deliver}</h2><p>{t.map}</p><a className="primary-button" href={`/${routes[2][lang][1]}`}>{t.discover}</a></div><div className="map-art"><div className="orbit o1"/><div className="orbit o2"/><div className="hub"><Logo logoKey={logoKey}/></div>{[1,2,3,4,5].map(n=><i key={n} className={`point p${n}`}/>)}</div></section>
+      <section className="world"><div className="world-copy"><small>{t.global}</small><h2>{t.deliver}</h2><p>{t.map}</p><a className="primary-button" href={`/${routes[3][lang][1]}`}>{t.discover}</a></div><div className="map-art"><div className="orbit o1"/><div className="orbit o2"/><div className="hub"><Logo logoKey={logoKey}/></div>{[1,2,3,4,5].map(n=><i key={n} className={`point p${n}`}/>)}</div></section>
       <section className="pillars">{t.pillars.map((title,i)=>{const Icon=[Zap,ShieldCheck,Lightbulb,Leaf][i]; return <article className={`pillar-${i+1}`} key={title}><img src="/hero-v2.png" alt=""/><div><Icon/><span><h3>{title}</h3><p>{t.pdesc[i]}</p></span></div></article>})}</section>
     </>}</main><footer><Logo logoKey={logoKey}/><p>© 2026 ECEX. {lang === "en" ? "Engineered in Türkiye." : "Türkiye’de mühendislikle üretildi."}</p><a href="/adminpanel">{t.admin}</a><b>{t.connect}</b></footer>
   </div>;
