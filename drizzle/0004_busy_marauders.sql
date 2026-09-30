@@ -1,0 +1,1 @@
+ALTER TABLE `product_options` ADD `product_item_id` integer;

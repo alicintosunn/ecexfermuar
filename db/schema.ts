@@ -79,6 +79,7 @@ export const productOptions = sqliteTable("product_options", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   category: text("category").notNull(),
   optionType: text("option_type").notNull(),
+  productItemId: integer("product_item_id"),
   titleEn: text("title_en").notNull(),
   titleTr: text("title_tr").notNull(),
   bodyEn: text("body_en").notNull().default(""),
