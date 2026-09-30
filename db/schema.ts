@@ -56,3 +56,34 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   used: integer("used", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const productItems = sqliteTable("product_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  category: text("category").notNull(),
+  titleEn: text("title_en").notNull(),
+  titleTr: text("title_tr").notNull(),
+  overviewEn: text("overview_en").notNull().default(""),
+  overviewTr: text("overview_tr").notNull().default(""),
+  featuresEn: text("features_en").notNull().default(""),
+  featuresTr: text("features_tr").notNull().default(""),
+  usesEn: text("uses_en").notNull().default(""),
+  usesTr: text("uses_tr").notNull().default(""),
+  imageKey: text("image_key"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const productOptions = sqliteTable("product_options", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  category: text("category").notNull(),
+  optionType: text("option_type").notNull(),
+  titleEn: text("title_en").notNull(),
+  titleTr: text("title_tr").notNull(),
+  bodyEn: text("body_en").notNull().default(""),
+  bodyTr: text("body_tr").notNull().default(""),
+  imageKey: text("image_key"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
