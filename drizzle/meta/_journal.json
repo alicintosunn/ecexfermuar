@@ -43,6 +43,13 @@
       "when": 1790843849525,
       "tag": "0005_chemical_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790852835069,
+      "tag": "0006_blushing_apocalypse",
+      "breakpoints": true
     }
   ]
 }

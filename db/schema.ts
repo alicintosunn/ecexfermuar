@@ -101,3 +101,14 @@ export const contactMessages = sqliteTable("contact_messages", {
   message: text("message").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const popups = sqliteTable("popups", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  language: text("language").notNull().default("en"),
+  message: text("message").notNull().default(""),
+  imageKey: text("image_key"),
+  videoKey: text("video_key"),
+  published: integer("published", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
