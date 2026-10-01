@@ -1,8 +1,10 @@
 import { getDb } from "@/db";
 import { contactMessages,siteSettings } from "@/db/schema";
 import { sendSmtpMail } from "@/lib/smtp";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request:Request){
+ if(!rateLimit(request,"contact",10,10*60_000))return Response.json({error:"Çok fazla mesaj gönderildi. Lütfen daha sonra tekrar deneyin."},{status:429});
  try{const p=await request.json() as Record<string,string>;if(!p.fullName||!p.email||!p.subject||!p.message)return Response.json({error:"Zorunlu alanları doldurun."},{status:400});const clean={fullName:String(p.fullName).slice(0,160),email:String(p.email).slice(0,240),phone:String(p.phone||"").slice(0,80),subject:String(p.subject).slice(0,240),message:String(p.message).slice(0,5000)};await getDb().insert(contactMessages).values(clean);const rows=await getDb().select().from(siteSettings),settings=Object.fromEntries(rows.map(x=>[x.key,x.value]));let mailWarning="";if(settings.contactDefaultEmail){try{await sendSmtpMail(settings,{to:settings.contactDefaultEmail,subject:`[ECEX Website] ${clean.subject}`,text:`Ad Soyad: ${clean.fullName}\nE-posta: ${clean.email}\nTelefon: ${clean.phone}\n\n${clean.message}`,html:`<h2>${escapeHtml(clean.subject)}</h2><p><strong>Ad Soyad:</strong> ${escapeHtml(clean.fullName)}<br><strong>E-posta:</strong> ${escapeHtml(clean.email)}<br><strong>Telefon:</strong> ${escapeHtml(clean.phone)}</p><p>${escapeHtml(clean.message).replace(/\n/g,"<br>")}</p>`})}catch(e){mailWarning=e instanceof Error?e.message:"E-posta iletilemedi."}}return Response.json({ok:true,mailWarning});}catch{return Response.json({error:"Mesaj gönderilemedi."},{status:500})}
 }
 function escapeHtml(value:string){return value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]!))}
