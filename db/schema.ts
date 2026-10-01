@@ -80,6 +80,7 @@ export const productOptions = sqliteTable("product_options", {
   category: text("category").notNull(),
   optionType: text("option_type").notNull(),
   productItemId: integer("product_item_id"),
+  productItemIds: text("product_item_ids").notNull().default("[]"),
   titleEn: text("title_en").notNull(),
   titleTr: text("title_tr").notNull(),
   bodyEn: text("body_en").notNull().default(""),
@@ -89,4 +90,14 @@ export const productOptions = sqliteTable("product_options", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const contactMessages = sqliteTable("contact_messages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull().default(""),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

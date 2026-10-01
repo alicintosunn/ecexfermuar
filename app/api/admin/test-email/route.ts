@@ -1,0 +1,7 @@
+import { getDb } from "@/db";
+import { siteSettings } from "@/db/schema";
+import { requireAdmin } from "@/lib/admin-auth";
+
+export async function POST(request:Request){
+ try{await requireAdmin();const {email}=await request.json() as {email?:string};if(!email||!email.includes("@"))return Response.json({error:"Geçerli bir test e-posta adresi girin."},{status:400});const rows=await getDb().select().from(siteSettings),s=Object.fromEntries(rows.map(x=>[x.key,x.value]));if(!s.smtpGatewayUrl)return Response.json({error:"Sunucuda e-posta gönderim geçidi yapılandırılmamış."},{status:400});const response=await fetch(s.smtpGatewayUrl,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({smtp:{host:s.smtpHost,port:Number(s.smtpPort||587),secure:s.smtpSecure==="true",username:s.smtpUser,password:s.smtpPassword},from:{name:s.smtpFromName||"ECEX",email:s.smtpFromEmail||s.smtpUser},to:{name:"ECEX SMTP Test",email},subject:"ECEX SMTP Test Mesajı",text:"SMTP ayarlarınız başarıyla çalışıyor.",html:"<p><strong>SMTP ayarlarınız başarıyla çalışıyor.</strong></p>"})});if(!response.ok)return Response.json({error:"Test e-postası gönderilemedi. SMTP bilgilerini kontrol edin."},{status:502});return Response.json({ok:true,message:"Test e-postası gönderildi."});}catch(e){return Response.json({error:e instanceof Error&&e.message==="UNAUTHORIZED"?"Unauthorized":"Test e-postası gönderilemedi."},{status:e instanceof Error&&e.message==="UNAUTHORIZED"?401:500})}
+}

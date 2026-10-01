@@ -12,3 +12,4 @@
 @media(max-width:900px){.reference-grid{grid-template-columns:repeat(3,1fr)}.reference-showcase{padding:42px 22px 70px}}
 @media(max-width:520px){.catalog-hero-copy h1{font-size:34px}.catalog-hero-copy>small{font-size:14px}.product-showcase{padding:16px}.type-buttons{grid-template-columns:repeat(3,1fr)}.product-main-image{height:330px}.product-type-strip{grid-template-columns:repeat(3,1fr)}.product-information .product-tabs button{font-size:9px}.option-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.reference-grid{grid-template-columns:repeat(2,1fr);gap:10px}.reference-grid figure{min-height:105px;padding:12px}.reference-grid img{height:70px}}
+.zoom-viewport{touch-action:none;user-select:none}.zoom-viewport.dragging{cursor:grabbing}.zoom-viewport img{pointer-events:none}
