@@ -1,0 +1,14 @@
+import { connect } from "cloudflare:sockets";
+
+type SmtpSettings={smtpHost?:string;smtpPort?:string;smtpSecure?:string;smtpUser?:string;smtpPassword?:string};
+type Mail={to:string;subject:string;text:string;html?:string};
+
+export async function sendSmtpMail(settings:SmtpSettings,mail:Mail){
+ const host=settings.smtpHost?.trim(),user=settings.smtpUser?.trim(),password=settings.smtpPassword||"",port=Number(settings.smtpPort||587);
+ if(!host)throw new Error("SMTP sunucusu boş.");if(!user)throw new Error("SMTP kullanıcı adı boş.");if(!password)throw new Error("SMTP şifresi boş.");if(!Number.isInteger(port)||port<1||port>65535)throw new Error("SMTP portu geçersiz.");
+ let socket=connect({hostname:host,port},{secureTransport:"starttls"}),reader=socket.readable.getReader(),writer=socket.writable.getWriter();const decoder=new TextDecoder(),encoder=new TextEncoder();
+ async function read(code:number){let data="";while(true){const part=await reader.read();if(part.done)throw new Error("SMTP bağlantısı beklenmedik şekilde kapandı.");data+=decoder.decode(part.value,{stream:true});const lines=data.split(/\r?\n/).filter(Boolean),last=lines.at(-1)||"";if(/^\d{3} /.test(last)){const actual=Number(last.slice(0,3));if(actual!==code)throw new Error(`SMTP ${actual}: ${last.slice(4)}`);return data}}}
+ async function write(command:string,code:number){await writer.write(encoder.encode(command+"\r\n"));return read(code)}
+ try{await read(220);await write("EHLO ecex.website",250);if(settings.smtpSecure!=="false"){await write("STARTTLS",220);reader.releaseLock();writer.releaseLock();socket=socket.startTls();reader=socket.readable.getReader();writer=socket.writable.getWriter();await write("EHLO ecex.website",250)}await write("AUTH LOGIN",334);await write(btoa(user),334);await write(btoa(password),235);await write(`MAIL FROM:<${user}>`,250);await write(`RCPT TO:<${mail.to}>`,250);await write("DATA",354);const boundary=`ecex-${crypto.randomUUID()}`,safeSubject=mail.subject.replace(/[\r\n]/g," "),body=[`From: ECEX <${user}>`,`To: <${mail.to}>`,`Subject: ${safeSubject}`,"MIME-Version: 1.0",`Content-Type: multipart/alternative; boundary="${boundary}"`,"",`--${boundary}`,"Content-Type: text/plain; charset=utf-8","Content-Transfer-Encoding: 8bit","",mail.text.replace(/\r?\n/g,"\r\n"),`--${boundary}`,"Content-Type: text/html; charset=utf-8","Content-Transfer-Encoding: 8bit","",mail.html||`<p>${escapeHtml(mail.text).replace(/\n/g,"<br>")}</p>`,`--${boundary}--`,"."].join("\r\n");await writer.write(encoder.encode(body+"\r\n"));await read(250);await write("QUIT",221);return{ok:true}}finally{try{reader.releaseLock();writer.releaseLock();socket.close()}catch{}}
+}
+function escapeHtml(value:string){return value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]!))}
