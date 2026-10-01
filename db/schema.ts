@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { boolean, integer, pgTable, serial, text } from "drizzle-orm/pg-core";
 
-export const contentSections = sqliteTable("content_sections", {
+export const contentSections = pgTable("content_sections", {
   key: text("key").primaryKey(),
   titleEn: text("title_en").notNull().default(""),
   titleTr: text("title_tr").notNull().default(""),
@@ -11,8 +11,8 @@ export const contentSections = sqliteTable("content_sections", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const blogPosts = sqliteTable("blog_posts", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
   titleEn: text("title_en").notNull(),
   titleTr: text("title_tr").notNull(),
   excerptEn: text("excerpt_en").notNull().default(""),
@@ -20,45 +20,45 @@ export const blogPosts = sqliteTable("blog_posts", {
   contentEn: text("content_en").notNull().default(""),
   contentTr: text("content_tr").notNull().default(""),
   imageKey: text("image_key"),
-  published: integer("published", { mode: "boolean" }).notNull().default(true),
+  published: boolean("published").notNull().default(true),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const siteSettings = sqliteTable("site_settings", {
+export const siteSettings = pgTable("site_settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull().default(""),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const adminUsers = sqliteTable("admin_users", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  active: boolean("active").notNull().default(true),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const adminSessions = sqliteTable("admin_sessions", {
+export const adminSessions = pgTable("admin_sessions", {
   token: text("token").primaryKey(),
   userId: integer("user_id"),
-  isDefaultAdmin: integer("is_default_admin", { mode: "boolean" }).notNull().default(false),
+  isDefaultAdmin: boolean("is_default_admin").notNull().default(false),
   expiresAt: text("expires_at").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+export const passwordResetTokens = pgTable("password_reset_tokens", {
   token: text("token").primaryKey(),
   userId: integer("user_id").notNull(),
   expiresAt: text("expires_at").notNull(),
-  used: integer("used", { mode: "boolean" }).notNull().default(false),
+  used: boolean("used").notNull().default(false),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const productItems = sqliteTable("product_items", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const productItems = pgTable("product_items", {
+  id: serial("id").primaryKey(),
   category: text("category").notNull(),
   titleEn: text("title_en").notNull(),
   titleTr: text("title_tr").notNull(),
@@ -75,8 +75,8 @@ export const productItems = sqliteTable("product_items", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const productOptions = sqliteTable("product_options", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const productOptions = pgTable("product_options", {
+  id: serial("id").primaryKey(),
   category: text("category").notNull(),
   optionType: text("option_type").notNull(),
   productItemId: integer("product_item_id"),
@@ -92,8 +92,8 @@ export const productOptions = sqliteTable("product_options", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const contactMessages = sqliteTable("contact_messages", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const contactMessages = pgTable("contact_messages", {
+  id: serial("id").primaryKey(),
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull().default(""),
@@ -102,13 +102,13 @@ export const contactMessages = sqliteTable("contact_messages", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const popups = sqliteTable("popups", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const popups = pgTable("popups", {
+  id: serial("id").primaryKey(),
   language: text("language").notNull().default("en"),
   message: text("message").notNull().default(""),
   imageKey: text("image_key"),
   videoKey: text("video_key"),
-  published: integer("published", { mode: "boolean" }).notNull().default(true),
+  published: boolean("published").notNull().default(true),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });

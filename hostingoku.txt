@@ -1,192 +1,36 @@
-ECEX WEB SİTESİ HOSTING KURULUM REHBERİ
-=======================================
-Sunucu paketi: 25 GB NVMe disk, 2 GB RAM, 1 CPU
-Son güncelleme: 01.10.2026
+ECEX HOSTING — VERCEL + SUPABASE
+================================
 
-1. ÖNEMLİ: MEVCUT SİTE NASIL ÇALIŞIYOR?
----------------------------------------
-Bu proje sıradan PHP/HTML sitesi değildir. Next.js tabanlıdır ve Vinext ile Cloudflare Worker ortamı için derlenmektedir. Ayrıca:
-- Cloudflare D1 veritabanı (DB binding),
-- Cloudflare R2 dosya deposu (BUCKET binding),
-- Worker uyumlu SMTP bağlantısı
-kullanır.
+Yeni üretim mimarisi:
+- Uygulama ve API: Vercel üzerinde standart Next.js
+- Veritabanı: Supabase PostgreSQL
+- Dosyalar: Supabase Storage
+- SMTP: Nodemailer üzerinden yönetim panelindeki SMTP ayarları
 
-Bu nedenle mevcut dosyaları FTP ile public_html içine kopyalamak siteyi çalıştırmaz. Hosting paketinin yalnızca disk/RAM/CPU bilgisi yeterli değildir; hizmet türünün de bilinmesi gerekir.
+Vercel kurulumu:
+1. Kaynak kodu GitHub/GitLab/Bitbucket deposuna gönderin.
+2. Vercel'de Add New Project ile depoyu içe aktarın.
+3. Framework Preset olarak Next.js seçin.
+4. Install Command: `pnpm install --frozen-lockfile`
+5. Build Command: `pnpm build`
+6. Output Directory alanını boş/default bırakın.
+7. Node.js 22 seçin.
 
-2. ÖNERİLEN VE EN AZ RİSKLİ KURULUM
------------------------------------
-Siteyi mevcut Sites/Cloudflare altyapısında çalıştırmaya devam edin ve satın aldığınız alan adını bu yayına bağlayın. Satın alınan hosting paketi e-posta, yedek veya başka servisler için kullanılabilir.
+Vercel Environment Variables:
+- DATABASE_URL
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY (secret)
+- SUPABASE_STORAGE_BUCKET=media
 
-Avantajları:
-- Kod değiştirmeden D1 ve R2 çalışmaya devam eder.
-- Worker/CDN sayesinde sayfalar dünya genelinde hızlı sunulur.
-- Sunucu süreci, PM2, Nginx ve işletim sistemi bakımı gerekmez.
-- Görseller R2'den, uygulama edge ağından servis edilir.
+Değişkenleri Production, Preview ve gerekiyorsa Development ortamlarına ekleyin. Production ve Preview için ayrı Supabase projeleri kullanılması önerilir.
 
-Alan adı bağlama özeti:
-1. Yayının bulunduğu Sites/Cloudflare projesinde özel alan adı ekleyin.
-2. Platformun verdiği DNS kaydını alan adının DNS yönetiminde aynen oluşturun.
-3. Kök alan adı ve www için platformun istediği CNAME/A kayıtlarını kullanın; hedefleri tahmin etmeyin.
-4. Eski/çakışan A veya CNAME kayıtlarını kontrol edin.
-5. SSL sertifikası aktif olana kadar bekleyin.
-6. https://alanadiniz.com, /tr/, /adminpanel, görseller, iletişim formu ve SMTP testini kontrol edin.
-7. Canonical ve hreflang adreslerini gerçek alan adına göre güncelleyin.
+İlk dağıtımdan önce Supabase migration'ını çalıştırın: `pnpm db:migrate`. Migration komutunu her Vercel fonksiyon başlangıcında çalıştırmayın.
 
-3. SATIN ALINAN PAKETİN TÜRÜNÜ KONTROL EDİN
--------------------------------------------
-Hosting firmasına şu soruları sorun:
-- Paket cPanel/Plesk paylaşımlı hosting mi, yoksa root/SSH erişimli VPS mi?
-- Node.js 22 veya daha yeni sürüm destekleniyor mu?
-- Uzun süre çalışan Node sürecine ve özel porta izin veriliyor mu?
-- Reverse proxy tanımlanabiliyor mu?
-- MySQL/MariaDB veya PostgreSQL var mı?
-- Cron, SSH, environment variable ve process manager desteği var mı?
+Medya yüklemeleri Vercel fonksiyonunun içinden geçirilmez. Yönetici doğrulandıktan sonra kısa süreli imzalı yükleme URL'si üretilir ve tarayıcı dosyayı doğrudan Supabase Storage'a yükler. Böylece büyük dosyalarda Vercel request body sınırına takılma riski azaltılır.
 
-Yalnızca PHP destekleyen paylaşımlı hostingte bu proje mevcut haliyle çalışmaz. “Node.js uygulaması” özelliği olsa bile Cloudflare D1/R2 binding kullanan mevcut Worker paketi doğrudan çalışmaz.
+Alan adı Vercel Project Settings > Domains bölümünden eklenir. Vercel'in gösterdiği DNS kayıtları domain sağlayıcısına uygulanır. SSL otomatik sağlanır.
 
-4. VPS ÜZERİNDE ÇALIŞTIRMAK İSTERSENİZ
---------------------------------------
-25 GB NVMe, 2 GB RAM ve 1 CPU düşük/orta trafikli kurumsal site için yeterli olabilir. Ancak önce uygulama Cloudflare Worker bağımlılıklarından standart Node.js sunucusuna taşınmalıdır.
+Dağıtım sonrası kontrol: /, /tr/, /adminpanel, ürün sayfaları, görsel yükleme/görüntüleme, blog, pop-up, iletişim formu, SMTP test e-postası, robots.txt ve sitemap.xml.
 
-Gerekli kod değişiklikleri:
-1. Vinext/Worker dağıtımı yerine standart Next.js Node.js build ve start akışı hazırlanır.
-2. db/index.ts içindeki cloudflare:workers ve D1 sürücüsü değiştirilir.
-3. Veritabanı için SQLite, MySQL/MariaDB veya PostgreSQL sürücüsü seçilir.
-4. R2 dosya depolaması korunabilir veya S3 uyumlu/local uploads depolamasına geçirilir.
-5. app/api/media ve app/api/admin/upload hedef depoya göre değiştirilir.
-6. SMTP gönderimi standart Node.js uyumlu kütüphane/bağlantıyla test edilir.
-7. Ortam değişkenleri kaynak kod dışında tanımlanır.
-
-Bu portlama tamamlanmadan aşağıdaki sunucu komutları uygulanmamalıdır; mevcut Worker build'ini Node sunucusu gibi başlatmak doğru değildir.
-
-5. ÖNERİLEN VPS YAZILIMLARI
----------------------------
-- Ubuntu 24.04 LTS
-- Node.js 22 LTS veya proje package.json dosyasındaki minimum sürüm
-- npm
-- Nginx
-- PM2 veya systemd
-- Certbot/Let's Encrypt (hosting paneli SSL sağlamıyorsa)
-- Git (özel depodan kurulum yapılacaksa)
-- Seçilen veritabanı sunucusu veya SQLite
-
-6. KAYNAK PLANLAMASI
---------------------
-2 GB RAM için:
-- İşletim sistemi + Nginx: yaklaşık 300–500 MB
-- Node uygulaması: uygulama/trafiğe bağlı yaklaşık 300–800 MB
-- Veritabanı aynı makinedeyse ek bellek gerekir.
-- Build işlemi 2 GB RAM'i aşabilir. 1–2 GB swap oluşturulması veya build'in başka makinede yapılıp çıktının sunucuya gönderilmesi önerilir.
-- PM2 cluster mode kullanmayın; 1 CPU olduğundan tek instance kullanın.
-
-25 GB disk için önerilen dağılım:
-- Sistem ve paketler: 6–10 GB
-- Uygulama ve build: 1–3 GB
-- Loglar: rotasyonla 1–2 GB sınır
-- Veritabanı ve dosyalar: kalan alan
-- Yedekleri aynı 25 GB disk üzerinde tek kopya olarak tutmayın; harici depoya gönderin.
-
-7. VPS İLK GÜVENLİK AYARLARI
-----------------------------
-1. Root ile doğrudan parola girişini kapatın; SSH anahtarı kullanın.
-2. Uygulama için ayrı, sudo yetkisi sınırlı kullanıcı oluşturun.
-3. Güvenlik duvarında yalnızca SSH, HTTP ve HTTPS portlarını açın.
-4. SSH portu açıksa Fail2ban veya sağlayıcı güvenlik duvarı kullanın.
-5. Otomatik güvenlik güncellemelerini etkinleştirin.
-6. /adminpanel için güçlü kullanıcı parolaları kullanın; admin/admin hesabını üretimden önce değiştirin.
-7. .env, yedek, veritabanı ve log dosyalarını web kökünün dışında tutun.
-
-8. PORTLAMA SONRASI ÖRNEK KURULUM AKIŞI
----------------------------------------
-Aşağıdaki akış standart Node sürümü hazırlandıktan sonradır:
-
-  sudo apt update
-  sudo apt upgrade
-  sudo apt install nginx git
-
-Node.js 22, resmi/güvenilir yöntemle kurulur. Uygulama örneğin /var/www/ecex altında, ecex adlı sistem kullanıcısına ait olmalıdır.
-
-  cd /var/www/ecex
-  npm ci
-  npm run build
-
-Uygulama yalnızca localhost üzerinde örneğin 3000 portunda çalıştırılır. İnternete doğrudan 3000 portu açılmaz. PM2 örneği:
-
-  pm2 start npm --name ecex -- start
-  pm2 save
-
-Nginx istekleri 127.0.0.1:3000 adresine aktarır. Temel reverse proxy ayarlarında Host, X-Real-IP, X-Forwarded-For ve X-Forwarded-Proto başlıkları iletilmelidir. Yükleme boyutu, yönetim panelinin kabul ettiği maksimum dosya boyutuna göre sınırlandırılmalıdır.
-
-9. ORTAM DEĞİŞKENLERİ
----------------------
-Gerekli değerler seçilen portlama mimarisine göre değişir. En azından:
-- NODE_ENV=production
-- Veritabanı bağlantısı veya SQLite dosya yolu
-- Dosya deposu/S3-R2 erişim bilgileri
-- Uygulama ana URL'si
-- Gerekirse oturum/uygulama secret değerleri
-
-SMTP ayarları halihazırda yönetim panelinde veritabanına kaydedilir. Yine de barındırma sağlayıcısının dış SMTP portlarını (465/587) engellemediği doğrulanmalıdır.
-
-Secret değerlerini Git'e, .txt belgelerine veya public_html içine yazmayın. Dosya izinlerini yalnızca uygulama kullanıcısının okuyabileceği biçimde sınırlandırın.
-
-10. VERİTABANI SEÇENEKLERİ
---------------------------
-A) D1 ve R2'yi korumak:
-Uygulamanın web katmanı Cloudflare'da kalır. En kolay ve mevcut mimariye en uygun yöntemdir.
-
-B) VPS + SQLite:
-Düşük trafik için yeterlidir. DB dosyası kalıcı ve yedeklenen bir dizinde tutulur. Aynı anda birden fazla uygulama instance'ı çalıştırılmaz.
-
-C) VPS/cPanel + MariaDB veya PostgreSQL:
-Drizzle şeması ve migration'lar hedef veritabanına dönüştürülür. Daha fazla kurulum çalışması gerektirir ama panel tabanlı hostinglerle uyumlu olabilir.
-
-11. DOSYA YÜKLEMELERİ
----------------------
-R2 korunursa 25 GB hosting diski medya için kullanılmaz. Local disk seçilirse:
-- Yükleme klasörü uygulama deploylarında silinmeyecek kalıcı bir dizin olmalıdır.
-- Yalnızca izin verilen MIME türleri ve dosya boyutları kabul edilmelidir.
-- Çalıştırılabilir dosya yüklenmesine izin verilmemelidir.
-- Günlük harici yedek alınmalıdır.
-- 25 GB'ın en az %20'si boş bırakılmalıdır.
-
-12. YEDEKLEME PLANI
--------------------
-- Veritabanı: her gün, 30 gün saklama
-- R2/local medya: her gün artımlı, haftada bir tam yedek
-- Uygulama kodu: Git deposu
-- Ortam/konfigürasyon: şifreli yedek
-- Yedek hedefi: sunucudan farklı bir fiziksel/kurumsal depolama
-- Ayda bir geri yükleme testi
-
-13. PERFORMANS AYARLARI
------------------------
-- Nginx gzip/brotli (destekleniyorsa) etkinleştirin.
-- Statik dosyalara uzun cache başlığı, HTML/API'lere uygun kısa/no-cache politikası verin.
-- Görselleri WebP/AVIF ve doğru ölçülerde yükleyin.
-- Log rotation kurun; disk dolmasını önleyin.
-- Tek CPU nedeniyle uygulamayı tek process olarak çalıştırın.
-- Veritabanı indeksleri ve yavaş sorgular trafik arttığında izlenmelidir.
-- Uptime ve 5xx hata izleme kurun.
-
-14. DAĞITIM SONRASI KONTROL LİSTESİ
------------------------------------
-- / İngilizce açılıyor.
-- /tr/ Türkçe açılıyor.
-- Header ve tüm alt menüler çalışıyor.
-- Dil değiştirici doğru eş sayfaya gidiyor.
-- /adminpanel HTTPS üzerinden açılıyor.
-- Admin varsayılan parolası değiştirilmiş.
-- Ürünler ve görseller yükleniyor.
-- Pop-up doğru dilde ve yayın durumuna göre açılıyor.
-- Blog ayrıntı sayfaları çalışıyor.
-- İletişim formu veritabanına kayıt yapıyor.
-- SMTP test e-postası gidiyor; SPF, DKIM ve DMARC kayıtları yapılandırılmış.
-- Sitemap, canonical ve hreflang gerçek alan adını gösteriyor.
-- SSL ve www/kök alan adı yönlendirmeleri doğru.
-- 404 ve 500 sayfaları test edilmiş.
-- Yedek alma ve geri yükleme test edilmiş.
-
-15. SONUÇ / TAVSİYE
--------------------
-Bu projeyi mevcut haliyle çalıştırmanın doğru yöntemi Sites/Cloudflare yayınına özel alan adını bağlamaktır. 25 GB NVMe, 2 GB RAM, 1 CPU paketini doğrudan kullanmak istiyorsanız hostingin VPS ve root/SSH erişimli olması; ayrıca uygulamanın D1/R2 Worker mimarisinden standart Node.js + seçilen veritabanı/depolama mimarisine portlanması gerekir. Paylaşımlı PHP hostingte FTP ile yükleme yöntemi uygun değildir.
+Satın alınmış 25 GB NVMe/2 GB RAM/1 CPU klasik hosting bu mimaride uygulama sunucusu olarak gerekli değildir. İstenirse e-posta hizmeti veya bağımsız yedek alanı olarak kullanılabilir. Uygulamanın kendisi Vercel ve Supabase üzerinde çalışır.

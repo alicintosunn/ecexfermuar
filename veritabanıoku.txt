@@ -1,105 +1,23 @@
-ECEX WEB SİTESİ VERİTABANI BİLGİLERİ
-=====================================
-Son güncelleme: 01.10.2026
+ECEX VERİTABANI — SUPABASE POSTGRES
+===================================
 
-1. KULLANILAN VERİTABANI
-------------------------
-Bu projede Cloudflare D1 kullanılmaktadır. D1, SQLite ile uyumlu ilişkisel bir veritabanıdır. Uygulama veritabanına Drizzle ORM üzerinden bağlanır.
+Uygulama artık Supabase PostgreSQL kullanır. Bağlantı `DATABASE_URL` ortam değişkeni üzerinden, Drizzle ORM ve `postgres` sürücüsüyle kurulur. Vercel serverless için Supabase Transaction Pooler bağlantısı (genellikle 6543 portu) kullanılmalıdır. Sürücü `prepare: false` ayarıyla transaction pooling'e uyumludur.
 
-Önemli dosyalar:
-- db/index.ts: Cloudflare ortamındaki DB bağlantısını açar.
-- db/schema.ts: Tabloları ve kolonları tanımlar.
-- drizzle.config.ts: SQLite lehçesini ve migration klasörünü tanımlar.
-- drizzle/: Veritabanı migration SQL dosyalarıdır.
-- .openai/hosting.json: D1 bağlantı adının DB, dosya deposu bağlantı adının BUCKET olduğunu belirtir.
+Şema: db/schema.ts
+Migration: drizzle-postgres/0000_initial_supabase.sql
+Drizzle ayarı: drizzle.config.ts
 
-Uygulamadaki bağlantı adı: DB
-ORM: Drizzle ORM
-SQL lehçesi: SQLite
+Tablolar: content_sections, blog_posts, site_settings, admin_users, admin_sessions, password_reset_tokens, product_items, product_options, contact_messages, popups.
 
-2. DOSYALAR NEREDE TUTULUR?
----------------------------
-Yüklenen logo, slider, pop-up, ürün, referans ve blog görselleri veritabanı satırının içine binary/BLOB olarak yazılmaz. Dosyalar Cloudflare R2 nesne deposunda BUCKET bağlantısıyla saklanır. D1 tablosunda yalnızca R2 nesne anahtarı (örnek: cms/...) tutulur. Bu ayrım veritabanını küçük ve sorguları hızlı tutar.
+Görsel ve videolar veritabanında tutulmaz. Supabase Storage içindeki `media` bucket'ında veya `SUPABASE_STORAGE_BUCKET` ile seçilen bucket'ta saklanır. Veritabanında yalnızca `cms/...` nesne anahtarı tutulur. Bucket private kalabilir; dosyalar `/api/media/...` üzerinden sunulur.
 
-3. TABLOLAR VE TUTULAN VERİLER
-------------------------------
-content_sections
-- Hakkımızda, kalite ve diğer kurumsal sayfaların İngilizce/Türkçe başlık, içerik ve görsel anahtarları.
+Kurulum:
+1. Supabase projesi oluşturun.
+2. Project Settings > Database içinden Transaction Pooler bağlantısını alın ve `DATABASE_URL` yapın.
+3. Storage bölümünde private `media` bucket'ı oluşturun.
+4. `.env.example` değerlerini `.env.local` ve Vercel Environment Variables alanına girin.
+5. `pnpm db:migrate` komutunu güvenli bir yönetim ortamında bir kez çalıştırın.
 
-blog_posts
-- İngilizce/Türkçe blog başlığı, özet, zengin içerik, kapak görseli, yayın durumu ve tarihler.
+`SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucuda kullanılmalıdır; `NEXT_PUBLIC_` öneki verilmemeli ve tarayıcıya gönderilmemelidir. Düzenli PostgreSQL yedeği ve Storage yedeği ayrı ayrı alınmalıdır.
 
-site_settings
-- Logo, slider listesi, SMTP sunucusu/port/kullanıcı/şifre, varsayılan iletişim e-postası ve eski pop-up ayarları gibi anahtar-değer ayarları.
-- SMTP şifresi hassas veridir. Veritabanı yedeği ve yönetim paneli erişimi korunmalıdır.
-
-admin_users
-- Yönetim paneli kullanıcılarının adı, soyadı, benzersiz e-posta adresi, parola özeti, aktiflik durumu ve oluşturulma tarihi.
-- Parola düz metin tutulmaz; PBKDF2-SHA256 ile 120.000 tur kullanılarak tuzlu özet halinde saklanır.
-
-admin_sessions
-- Yönetici oturum belirteci, kullanıcı bağlantısı, varsayılan admin bilgisi ve son kullanma zamanı.
-- Oturumlar 8 saat geçerlidir. Çerez HttpOnly, SameSite=Strict ve üretimde Secure olarak ayarlanır.
-
-password_reset_tokens
-- Tek kullanımlık parola yenileme belirteci, kullanıcı, süre sonu ve kullanım durumu.
-
-product_items
-- Metal, kemik ve naylon kategorilerindeki mevcut tipler; iki dilde başlık/genel açıklama/özellik/kullanım alanı; ana görsel, galeri ve sıralama.
-
-product_options
-- Kaplamalar ve bitirme şekilleri; kategori, bağlı ürün tipi/tipleri, iki dilde ad ve içerik, görseller ve sıralama.
-
-contact_messages
-- İletişim formundan gelen ad soyad, e-posta, telefon, konu, mesaj ve oluşturulma tarihi.
-
-popups
-- Dil (en veya tr), mesaj, görsel/video anahtarı, yayın durumu ve oluşturulma/güncellenme tarihleri.
-
-Toplam tablo sayısı: 10
-
-4. MEVCUT VERİ MİKTARI VE KAPASİTE
------------------------------------
-Kaynak koddan canlı veritabanındaki toplam satır sayısı veya kullanılan byte miktarı güvenilir biçimde çıkarılamaz. Bu dosyanın oluşturulduğu anda projede canlı üretim verisinin kesin satır ve depolama ölçümü yerel dosyalarda bulunmamaktadır; bu nedenle tahmini/sahte rakam yazılmamıştır.
-
-Veri kapasitesi satın alınan 25 GB hosting diskiyle belirlenmez. Mevcut kurulumda:
-- İlişkisel veri kapasitesini Cloudflare D1 hesabının plan limitleri,
-- Görsel/video kapasitesini Cloudflare R2 hesabının plan limitleri belirler.
-
-R2 dosyaları D1 boyutuna dahil değildir. Canlı kullanım miktarı Cloudflare/Sites kontrol panelindeki D1 ve R2 ölçümlerinden kontrol edilmelidir. Satır sayıları gerektiğinde her tablo için `SELECT COUNT(*) FROM tablo_adi;` sorgusuyla ölçülür.
-
-5. MIGRATION VE KURULUM
------------------------
-Şema değişiklikleri doğrudan canlı tabloda elle yapılmamalıdır. Önce db/schema.ts değiştirilir, sonra migration üretilir:
-
-  npx drizzle-kit generate
-
-Üretilen drizzle/*.sql dosyaları sürüm kontrolüne eklenir. Sites/Cloudflare dağıtımı sırasında migration'lar hedef D1 veritabanına uygulanır. Yeni kurulumda bütün migration dosyaları numara sırasıyla çalıştırılmalıdır.
-
-6. YEDEKLEME VE GERİ YÜKLEME
-----------------------------
-- Dağıtımdan önce D1 veritabanının dışa aktarımı alınmalıdır.
-- R2 nesneleri ayrıca yedeklenmelidir; yalnızca D1 yedeği görselleri geri getirmez.
-- Yedekler web kökünde ve herkese açık bir URL altında tutulmamalıdır.
-- Günlük D1 yedeği, haftalık R2 yedeği ve en az 30 günlük saklama önerilir.
-- Geri yükleme testi en az üç ayda bir yapılmalıdır.
-
-7. GÜVENLİK NOTLARI
--------------------
-- Üretime geçmeden önce varsayılan admin/admin hesabı mutlaka değiştirilmelidir. Bu hesap internete açık bırakılmamalıdır.
-- Yönetim paneli yalnızca HTTPS üzerinden kullanılmalıdır.
-- D1 ve R2 erişim bilgileri kaynak koda yazılmamalı; platform secret/binding olarak tutulmalıdır.
-- SMTP şifresi, veritabanı dışa aktarımları ve yedekler yetkisiz kişilerle paylaşılmamalıdır.
-- Yönetici kullanıcıları kişiye özel olmalı; ortak hesap kullanılmamalıdır.
-- Kullanılmayan kullanıcılar pasif hale getirilmeli veya silinmelidir.
-- Veritabanı ve nesne deposu yedekleri şifrelenmelidir.
-
-8. BAŞKA VERİTABANINA TAŞIMA
-----------------------------
-Klasik hostinge taşınacaksa D1 doğrudan cPanel MySQL gibi çalışmaz. Uygulama kodunda veri katmanı değiştirilmelidir. Seçenekler:
-- VPS üzerinde SQLite: düşük trafik için basit; tek sunucuya bağımlıdır ve düzenli dosya yedeği gerekir.
-- MySQL/MariaDB: cPanel hostinglerde sık bulunur; Drizzle şeması ve sürücüsü MySQL'e çevrilmelidir.
-- PostgreSQL: güçlü ve ölçeklenebilir; Drizzle şeması ve sürücüsü PostgreSQL'e çevrilmelidir.
-
-Taşıma sırasında tablo yapıları hedef SQL türlerine dönüştürülür, veriler export/import edilir, dosyalar R2'de bırakılır veya S3 uyumlu/local depoya aktarılır. Veri kaybını önlemek için önce test ortamında prova yapılmalıdır.
-
+Eski Cloudflare D1 verileri otomatik taşınmaz. Canlı eski veriler gerekiyorsa D1 dışa aktarımı PostgreSQL tiplerine dönüştürülerek Supabase'e aktarılmalı; R2 medya dosyaları da Supabase Storage'a kopyalanmalı ve anahtarlar korunmalıdır.

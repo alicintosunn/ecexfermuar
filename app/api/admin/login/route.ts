@@ -8,7 +8,8 @@ export async function GET() { return Response.json({ authenticated: await isAdmi
 export async function POST(request: Request) {
   if(!rateLimit(request,"admin-login",8,15*60_000))return Response.json({error:"Çok fazla giriş denemesi. 15 dakika sonra tekrar deneyin."},{status:429,headers:{"retry-after":"900"}});
   const { username, password } = await request.json() as { username?: string; password?: string };
-  if (username === "admin" && password === "admin") { await createAdminSession(null, true); return Response.json({ ok: true }); }
+  const bootstrapUser=process.env.ADMIN_USERNAME,bootstrapPassword=process.env.ADMIN_PASSWORD;
+  if (bootstrapUser && bootstrapPassword && username === bootstrapUser && password === bootstrapPassword) { await createAdminSession(null, true); return Response.json({ ok: true }); }
   if (!username || !password) return Response.json({ error: "Kullanıcı adı veya şifre hatalı." }, { status: 401 });
   const [user] = await getDb().select().from(adminUsers).where(eq(adminUsers.email, username.trim().toLowerCase())).limit(1);
   if (!user?.active || !(await verifyPassword(password, user.passwordHash))) return Response.json({ error: "Kullanıcı adı veya şifre hatalı." }, { status: 401 });
