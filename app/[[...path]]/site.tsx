@@ -176,7 +176,7 @@ function CatalogAccordionBody({groupKey,items,options,currentId,onSelectProduct,
  if(groupKey==="types") return <div className="accordion-content"><div className="type-buttons">
   {items.map(item => <button className={currentId===item.id?"active":""} key={item.id} onClick={()=>onSelectProduct(item)}>{tr?item.titleTr:item.titleEn}</button>)}
  </div></div>;
- const filtered=options.filter(item=>{const ids=optionTypeIds(item);return item.optionType===groupKey&&(!ids.length||ids.includes(currentId))});
+ const filtered=options.filter(item=>item.optionType===groupKey&&optionTypeIds(item).includes(currentId));
  return <div className="accordion-content"><div className="option-grid">
   {filtered.flatMap(item => [item.imageKey,...parseGallery(item.galleryKeys)].filter(Boolean).map((imageKey,index) => <button className="option-card" key={`${item.id}-${imageKey}-${index}`} onClick={()=>onPreview(String(imageKey))}><img src={`/api/media/${imageKey}`} alt=""/><strong>{tr?item.titleTr:item.titleEn}</strong></button>))}
  </div></div>;
