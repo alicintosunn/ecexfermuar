@@ -19,12 +19,21 @@ async function listMedia(){
  return Array.from(rows as unknown as Iterable<{name:string;size:string|number;content_type:string}>).map(row=>({key:row.name,size:Number(row.size||0),contentType:row.content_type}));
 }
 
+async function databaseStorageBytes(){
+ const rows=await getDb().execute(sql`select coalesce(sum(pg_total_relation_size((quote_ident(schemaname)||'.'||quote_ident(tablename))::regclass)),0)::bigint as bytes from pg_tables where schemaname='public' and tablename in ('content_sections','blog_posts','site_settings','admin_users','product_items','product_options','contact_messages','popups')`);
+ const [row]=Array.from(rows as unknown as Iterable<{bytes:string|number}>);
+ return Number(row?.bytes||0);
+}
+
 export async function GET(request:Request){
  try{
   await requireAdmin();
-  const mode=new URL(request.url).searchParams.get("mode"),[backup,media]=await Promise.all([createDatabaseBackup(),listMedia()]);
-  const databaseBytes=new TextEncoder().encode(JSON.stringify(backup)).byteLength,mediaBytes=media.reduce((sum,file)=>sum+file.size,0);
-  if(mode==="summary")return Response.json({databaseBytes,mediaBytes,totalBytes:databaseBytes+mediaBytes,mediaCount:media.length},{headers:{"cache-control":"private, no-store"}});
+  const mode=new URL(request.url).searchParams.get("mode");
+  if(mode==="summary"){
+   const [databaseBytes,media]=await Promise.all([databaseStorageBytes(),listMedia()]),mediaBytes=media.reduce((sum,file)=>sum+file.size,0);
+   return Response.json({databaseBytes,mediaBytes,totalBytes:databaseBytes+mediaBytes,mediaCount:media.length},{headers:{"cache-control":"private, no-store"}});
+  }
+  const [backup,media]=await Promise.all([createDatabaseBackup(),listMedia()]);
   return Response.json({formatVersion:2,application:"ecexfermuar",createdAt:new Date().toISOString(),database:backup,media},{headers:{"cache-control":"private, no-store","x-content-type-options":"nosniff"}});
  }catch(error){return Response.json({error:error instanceof Error&&error.message==="UNAUTHORIZED"?"Unauthorized":"Yedek oluşturulamadı."},{status:error instanceof Error&&error.message==="UNAUTHORIZED"?401:500})}
 }
