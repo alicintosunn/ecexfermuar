@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { getDb } from "@/db";
+import { blogPosts, contentSections, popups, productItems, productOptions, siteSettings } from "@/db/schema";
 import { EcexSite } from "./site";
+
+export const dynamic = "force-dynamic";
 
 const base = "https://ecex-premium-zippers.alicintosunai.chatgpt.site";
 const routePairs: Record<string, string> = { "": "tr", about: "tr/hakkimizda", products: "tr/urunler", kalite: "tr/kalite", blog: "tr/blog", contact: "tr/iletisim", "about/history": "tr/hakkimizda/tarihce", "about/vision": "tr/hakkimizda/vizyon", "about/mission": "tr/hakkimizda/misyon", "about/data-protection": "tr/hakkimizda/kvkk", "about/reference-brands": "tr/hakkimizda/referans-markalarimiz", "products/metal-zippers": "tr/urunler/metal-fermuarlar", "products/nylon-zippers": "tr/urunler/naylon-fermuarlar", "products/molded-plastic-zippers": "tr/urunler/kemik-fermuarlar", "quality/policy":"tr/kalite/politikasi", "quality/certificates":"tr/kalite/belgeleri", "quality/test-methods-and-measurement-standards":"tr/kalite/test-yontemleri-ve-olcme-standartlari" };
@@ -18,5 +23,16 @@ export async function generateMetadata({ params }: { params: Promise<{ path?: st
 
 export default async function Page({ params }: { params: Promise<{ path?: string[] }> }) {
   const path = (await params).path?.join("/") || "";
-  return <EcexSite initialPath={path} />;
+  const language=path==="tr"||path.startsWith("tr/")?"tr":"en";
+  const category=path.includes("molded-plastic")||path.includes("kemik-fermuarlar")?"molded":path.includes("nylon-zippers")||path.includes("naylon-fermuarlar")?"nylon":path.includes("metal-zippers")||path.includes("metal-fermuarlar")?"metal":null;
+  const db=getDb();
+  const [sections,posts,settingsRows,popupRows,items,options]=await Promise.all([
+    db.select().from(contentSections),
+    db.select().from(blogPosts).where(eq(blogPosts.published,true)).orderBy(desc(blogPosts.createdAt)),
+    db.select().from(siteSettings).where(inArray(siteSettings.key,["logoKey","sliderImages","popupEnabled","popupMessageEn","popupMessageTr","popupImageKey","popupVideoKey"])),
+    db.select().from(popups).where(and(eq(popups.language,language),eq(popups.published,true))).orderBy(desc(popups.updatedAt),desc(popups.id)),
+    category?db.select().from(productItems).where(eq(productItems.category,category)).orderBy(asc(productItems.sortOrder),asc(productItems.id)):Promise.resolve([]),
+    category?db.select().from(productOptions).where(eq(productOptions.category,category)).orderBy(asc(productOptions.sortOrder),asc(productOptions.id)):Promise.resolve([]),
+  ]);
+  return <EcexSite initialPath={path} initialData={{sections,posts,settings:Object.fromEntries(settingsRows.map(row=>[row.key,row.value])),popups:popupRows.map(row=>({...row,language:row.language==="tr"?"tr" as const:"en" as const})),items,options:options.map(row=>({...row,optionType:row.optionType==="finish"?"finish" as const:"coating" as const}))}} />;
 }
