@@ -1,0 +1,55 @@
+/* ECEX 2026 light brand theme. Remove this import to restore the previous dark palette. */
+:root{
+  --brand-main:#F5F4F0;
+  --brand-alt:#EEF0F2;
+  --brand-heading:#20252B;
+  --brand-copy:#60666D;
+  --brand-accent:#B99A62;
+  --brand-dark:#171B20;
+  --ink:var(--brand-heading);
+  --navy:var(--brand-main);
+  --panel:#fff;
+  --blue:#7b6846;
+  --orange:var(--brand-accent);
+  --line:#d8d4cb;
+  --muted:var(--brand-copy);
+}
+html,body{background:var(--brand-main);color:var(--brand-heading)}
+.site-shell{background:var(--brand-main);color:var(--brand-heading)}
+.header{background:rgba(245,244,240,.96);border-bottom-color:#dedbd3;box-shadow:0 8px 30px #171b200a}
+.header .nav a,.header .lang-button,.mobile-toggle{color:var(--brand-heading)}
+.header .nav a:after{background:var(--brand-accent)}
+.lang-menu{background:#fff;border-color:#d6d0c5;box-shadow:0 18px 50px #171b2020}
+.lang-menu a:hover{background:var(--brand-alt)}
+.hero-shade{background:linear-gradient(90deg,rgba(23,27,32,.92),rgba(23,27,32,.62) 42%,rgba(23,27,32,.08) 76%),linear-gradient(0deg,rgba(23,27,32,.5),transparent 35%)}
+.hero-copy,.hero-copy p,.slide-count{color:#fff}
+.hero-copy>strong,.section small,.world small,.admin small{color:var(--brand-accent)}
+.primary-button,.ghost-button{background:var(--brand-accent);border-color:var(--brand-accent);color:#fff;box-shadow:0 10px 28px #b99a6233}
+.stats{background:#fff;border-color:#ded8cc;box-shadow:0 22px 55px #171b2014}
+.stats>div{border-right-color:#e4e1da}.stats svg,.stats b,.stats>div:nth-child(2) b,.stats>div:nth-child(4) b{color:var(--brand-accent)}
+.section{background:var(--brand-main)}
+.section:nth-of-type(even),.pillars{background:var(--brand-alt)}
+.section h1,.section h2,.section h3,.world h2{color:var(--brand-heading)}
+.section p,.world-copy p{color:var(--brand-copy)}
+.product-card,.blog-card{background:#fff;border-color:#ded8cc;box-shadow:0 14px 36px #171b200d}
+.product-card:hover,.blog-card:hover{border-color:var(--brand-accent);box-shadow:0 18px 40px #b99a6224}
+.product-card span,.blog-card small{color:var(--brand-accent)}
+.world{background:var(--brand-alt)}
+.map-art{background:radial-gradient(ellipse at 53% 47%,#d8c9ac 0,#dfe4e5 52%,transparent 74%)}
+.pillar{background:#fff;color:var(--brand-heading);border-color:#ded8cc}.pillar p{color:var(--brand-copy)}
+.footer{background:var(--brand-dark);color:#f5f4f0;border-top-color:#30363d}
+.footer a,.footer p,.footer small{color:#d6d9dc}
+.inner-page,.content-page,.contact-page,.quality-page,.references-page,.blog-grid{background:var(--brand-main);color:var(--brand-heading)}
+.page-hero,.product-hero,.blog-detail-hero{color:#fff;background:var(--brand-dark)}
+.content-card,.contact-card,.quality-card,.reference-card{background:#fff;color:var(--brand-heading);border-color:#ded8cc;box-shadow:0 16px 42px #171b200d}
+.content-card p,.contact-card p,.quality-card p{color:var(--brand-copy)}
+.blog-card{color:var(--brand-heading)}.blog-card p{color:var(--brand-copy)}
+.blog-detail{background:var(--brand-alt);color:var(--brand-heading)}
+.blog-rich-content{color:var(--brand-copy);box-shadow:0 24px 60px #171b201f}
+.product-showroom{background:var(--brand-main);color:var(--brand-heading)}
+.showroom-panel,.showroom-sidebar section,.product-detail-card{background:#fff!important;color:var(--brand-heading)!important;border-color:#d8d4cb!important;box-shadow:0 12px 32px #171b200d}
+.showroom-sidebar p,.product-detail-card p{color:var(--brand-copy)!important}
+.showroom-sidebar button,.product-detail-tabs button{color:var(--brand-heading)!important}
+.product-detail-tabs button.active{background:var(--brand-accent)!important;color:#fff!important}
+.backup-size{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 14px;margin-top:14px;padding:13px 15px;border:1px solid #d5dde7;border-radius:7px;background:#f7f9fb}.backup-size strong{font-size:13px}.backup-size b{font-size:22px;color:#174b86}.backup-size span{width:100%;font-size:12px;color:#68778a}
+@media(max-width:760px){.header{background:rgba(245,244,240,.98)}.nav{background:#fff;border-color:#dedbd3}.stats{background:#fff}}

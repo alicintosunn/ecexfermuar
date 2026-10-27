@@ -2,19 +2,36 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminUsers,blogPosts,contactMessages,contentSections,popups,productItems,productOptions,siteSettings } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
+import { getSupabaseAdmin, storageBucket } from "@/lib/supabase-server";
 
 export const runtime="nodejs";
 const tables={contentSections,blogPosts,siteSettings,adminUsers,productItems,productOptions,contactMessages,popups};
 type BackupData={schemaVersion:1;createdAt:string;application:"ecexfermuar";data:{[K in keyof typeof tables]:unknown[]}};
 
-export async function GET(){
+async function createDatabaseBackup():Promise<BackupData>{
+ const db=getDb();
+ const [sections,posts,settings,users,items,options,messages,popupRows]=await Promise.all([db.select().from(contentSections),db.select().from(blogPosts),db.select().from(siteSettings),db.select().from(adminUsers),db.select().from(productItems),db.select().from(productOptions),db.select().from(contactMessages),db.select().from(popups)]);
+ return {schemaVersion:1,createdAt:new Date().toISOString(),application:"ecexfermuar",data:{contentSections:sections,blogPosts:posts,siteSettings:settings,adminUsers:users,productItems:items,productOptions:options,contactMessages:messages,popups:popupRows}};
+}
+
+async function listMedia(){
+ const storage=getSupabaseAdmin().storage.from(storageBucket),files:{key:string;size:number;contentType:string}[]=[];
+ for(let offset=0;;offset+=1000){
+  const {data,error}=await storage.list("cms",{limit:1000,offset,sortBy:{column:"name",order:"asc"}});
+  if(error)throw error;
+  for(const item of data||[])if(item.id)files.push({key:`cms/${item.name}`,size:Number(item.metadata?.size||0),contentType:String(item.metadata?.mimetype||"application/octet-stream")});
+  if(!data||data.length<1000)break;
+ }
+ return files;
+}
+
+export async function GET(request:Request){
  try{
   await requireAdmin();
-  const db=getDb();
-  const [sections,posts,settings,users,items,options,messages,popupRows]=await Promise.all([db.select().from(contentSections),db.select().from(blogPosts),db.select().from(siteSettings),db.select().from(adminUsers),db.select().from(productItems),db.select().from(productOptions),db.select().from(contactMessages),db.select().from(popups)]);
-  const backup:BackupData={schemaVersion:1,createdAt:new Date().toISOString(),application:"ecexfermuar",data:{contentSections:sections,blogPosts:posts,siteSettings:settings,adminUsers:users,productItems:items,productOptions:options,contactMessages:messages,popups:popupRows}};
-  const date=new Date().toISOString().slice(0,10);
-  return new Response(JSON.stringify(backup,null,2),{headers:{"content-type":"application/json; charset=utf-8","content-disposition":`attachment; filename="ecex-yedek-${date}.json"`,"cache-control":"private, no-store","x-content-type-options":"nosniff"}});
+  const mode=new URL(request.url).searchParams.get("mode"),[backup,media]=await Promise.all([createDatabaseBackup(),listMedia()]);
+  const databaseBytes=new TextEncoder().encode(JSON.stringify(backup)).byteLength,mediaBytes=media.reduce((sum,file)=>sum+file.size,0);
+  if(mode==="summary")return Response.json({databaseBytes,mediaBytes,totalBytes:databaseBytes+mediaBytes,mediaCount:media.length},{headers:{"cache-control":"private, no-store"}});
+  return Response.json({formatVersion:2,application:"ecexfermuar",createdAt:new Date().toISOString(),database:backup,media},{headers:{"cache-control":"private, no-store","x-content-type-options":"nosniff"}});
  }catch(error){return Response.json({error:error instanceof Error&&error.message==="UNAUTHORIZED"?"Unauthorized":"Yedek oluşturulamadı."},{status:error instanceof Error&&error.message==="UNAUTHORIZED"?401:500})}
 }
 

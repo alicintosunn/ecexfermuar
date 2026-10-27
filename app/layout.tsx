@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import "./brand-theme.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ecex-premium-zippers.alicintosunai.chatgpt.site"),

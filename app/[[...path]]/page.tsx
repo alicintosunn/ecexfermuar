@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { blogPosts, contentSections, popups, productItems, productOptions, siteSettings } from "@/db/schema";
 import { EcexSite } from "./site";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const base = "https://ecex-premium-zippers.alicintosunai.chatgpt.site";
 const routePairs: Record<string, string> = { "": "tr", about: "tr/hakkimizda", products: "tr/urunler", kalite: "tr/kalite", blog: "tr/blog", contact: "tr/iletisim", "about/history": "tr/hakkimizda/tarihce", "about/vision": "tr/hakkimizda/vizyon", "about/mission": "tr/hakkimizda/misyon", "about/data-protection": "tr/hakkimizda/kvkk", "about/reference-brands": "tr/hakkimizda/referans-markalarimiz", "products/metal-zippers": "tr/urunler/metal-fermuarlar", "products/nylon-zippers": "tr/urunler/naylon-fermuarlar", "products/molded-plastic-zippers": "tr/urunler/kemik-fermuarlar", "quality/policy":"tr/kalite/politikasi", "quality/certificates":"tr/kalite/belgeleri", "quality/test-methods-and-measurement-standards":"tr/kalite/test-yontemleri-ve-olcme-standartlari" };
