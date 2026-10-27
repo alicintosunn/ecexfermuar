@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { adminUsers,blogPosts,contactMessages,contentSections,popups,productItems,productOptions,siteSettings } from "@/db/schema";
 import { requireAdmin } from "@/lib/admin-auth";
-import { getSupabaseAdmin, storageBucket } from "@/lib/supabase-server";
+import { storageBucket } from "@/lib/supabase-server";
 
 export const runtime="nodejs";
 const tables={contentSections,blogPosts,siteSettings,adminUsers,productItems,productOptions,contactMessages,popups};
@@ -15,14 +15,8 @@ async function createDatabaseBackup():Promise<BackupData>{
 }
 
 async function listMedia(){
- const storage=getSupabaseAdmin().storage.from(storageBucket),files:{key:string;size:number;contentType:string}[]=[];
- for(let offset=0;;offset+=1000){
-  const {data,error}=await storage.list("cms",{limit:1000,offset,sortBy:{column:"name",order:"asc"}});
-  if(error)throw error;
-  for(const item of data||[])if(item.id)files.push({key:`cms/${item.name}`,size:Number(item.metadata?.size||0),contentType:String(item.metadata?.mimetype||"application/octet-stream")});
-  if(!data||data.length<1000)break;
- }
- return files;
+ const rows=await getDb().execute(sql`select name, coalesce((metadata->>'size')::bigint,0) as size, coalesce(metadata->>'mimetype','application/octet-stream') as content_type from storage.objects where bucket_id=${storageBucket} and name like 'cms/%' order by name`);
+ return Array.from(rows as unknown as Iterable<{name:string;size:string|number;content_type:string}>).map(row=>({key:row.name,size:Number(row.size||0),contentType:row.content_type}));
 }
 
 export async function GET(request:Request){
