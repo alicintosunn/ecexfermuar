@@ -1,0 +1,426 @@
+ECEX FERMUAR WEB SİTESİ – SİSTEM BİLGİLERİ
+Belge tarihi: 30.10.2026
+
+===============================================================================
+1. PROJENİN AMACI VE GENEL YAPISI
+===============================================================================
+
+Bu proje, Ece Fermuar / ECEX markasının İngilizce ve Türkçe kurumsal web sitesi
+ile içerik yönetim panelini içerir. İngilizce varsayılan dildir.
+
+Canlı site: https://ecexfermuar.vercel.app
+Yönetim paneli: https://ecexfermuar.vercel.app/adminpanel
+Kaynak kod: https://github.com/alicintosunn/ecexfermuar
+
+Sistem üç ana hizmetten oluşur:
+
+1. Vercel:
+   - Next.js uygulamasını ve sunucusuz API fonksiyonlarını çalıştırır.
+   - GitHub main dalındaki sürümler buraya yayınlanır.
+   - HTTPS, CDN, önbellek ve üretim dağıtımını sağlar.
+
+2. Supabase:
+   - PostgreSQL veritabanını barındırır.
+   - Siteye yüklenen görsel ve videoları Storage alanında saklar.
+   - Veritabanı bağlantısı Supavisor transaction pooler üzerinden yapılır.
+
+3. GitHub:
+   - Projenin sürüm kontrollü kaynak kodunu saklar.
+   - Eski kod sürümlerine dönmeyi sağlar.
+   - Vercel dağıtım kaynağı olarak kullanılır.
+
+Cloudflare Workers, Wrangler, Workerd, D1 ve R2 kullanılmaz.
+
+===============================================================================
+2. KULLANILAN YAZILIM DİLLERİ VE TEKNOLOJİLER
+===============================================================================
+
+Ana diller:
+- TypeScript: Uygulama, API ve yönetim paneli kodları.
+- TSX / React: Kullanıcı arayüzleri ve bileşenler.
+- CSS: Masaüstü ve mobil tasarım.
+- SQL / PostgreSQL: Veritabanı tabloları ve sorgular.
+- HTML: React tarafından üretilen sayfa yapısı ve blog zengin metin içeriği.
+
+Temel altyapı:
+- Node.js: 22.13.0 veya üzeri.
+- Next.js: 16.3.6, App Router.
+- React: 19.2.6.
+- React DOM: 19.2.6.
+- pnpm: 11.25.0.
+- TypeScript: 5.9.3.
+- Drizzle ORM: 0.45.2.
+- postgres.js: 3.4.7.
+- Supabase JavaScript istemcisi: 2.57.4.
+- JSZip: 3.10.1; tam site yedeği oluşturmak ve açmak için.
+- Nodemailer: 10.0.13; SMTP e-posta gönderimi için.
+- Lucide React: Yönetim paneli ve site ikonları.
+- Tailwind/PostCSS paketleri kurulu olsa da ana özel tasarım CSS dosyalarıyla
+  uygulanmaktadır.
+
+Önemli dosyalar:
+- app/[[...path]]/page.tsx: Çok dilli bütün site yollarının sunucu sayfası.
+- app/[[...path]]/site.tsx: Ana site ve sayfa bileşenleri.
+- app/adminpanel/page.tsx: Yönetim paneli.
+- app/globals.css: Genel site ve panel tasarımı.
+- app/product.css: Ürün sayfaları ve ürün yönetimi tasarımı.
+- app/admin-products.css: Yönetim paneli ürün/yedek bileşenleri.
+- app/responsive-fixes.css: Mobil ve tablet uyumluluk katmanı.
+- db/schema.ts: Veritabanı tablo tanımları.
+- db/index.ts: Supabase PostgreSQL bağlantısı.
+- drizzle-postgres/: PostgreSQL migration dosyaları.
+- lib/admin-auth.ts: Yönetim paneli oturum ve parola işlemleri.
+- lib/supabase-server.ts: Sunucu tarafı Supabase Storage istemcisi.
+- lib/mailer.ts: SMTP e-posta gönderim altyapısı.
+
+===============================================================================
+3. WEB SİTESİNDE BULUNAN ÖZELLİKLER
+===============================================================================
+
+- Varsayılan İngilizce site: /
+- Türkçe site: /tr/
+- İngilizce ve Türkçe menüler, içerikler ve SEO alanları.
+- Dil seçici ve eşdeğer dil sayfasına yönlendirme.
+- Ana sayfa slider yönetimi.
+- Fermuar açılış animasyonu.
+- Yönetilebilir pop-up; dil, mesaj, görsel, video ve yayın durumu.
+- Hakkımızda alt sayfaları:
+  Tarihçe, Vizyon, Misyon, KVKK, Referans Markalarımız.
+- Referans marka adı ve çoklu logo yönetimi.
+- Ürün kategorileri:
+  Metal Fermuar, Kemik Fermuar, Naylon Fermuar.
+- Ürün tipi, çoklu ürün görseli, kaplama ve bitirme şekli yönetimi.
+- Kaplama ve bitirme şekillerini birden fazla ürün tipiyle eşleştirme.
+- Ürün ana görseli, küçük görseller, büyütme, mouse tekerleğiyle zoom ve
+  basılı tutarak kaydırma.
+- Genel Açıklama, Özellikler ve Kullanım Alanları sekmeleri.
+- Kalite Politikası, Kalite Belgeleri ve Fermuar Test Yöntemleri ve Ölçme
+  Standartları sayfaları.
+- Blog liste ve detay sayfaları.
+- Blog zengin metin editörü; yazı tipi, boyut, renk ve görsel ekleme.
+- İletişim adresleri, telefonlar ve İstanbul/Kütahya haritaları.
+- Bize Ulaşın formu; mesajları yönetim panelinde kaydetme ve SMTP üzerinden
+  bildirim e-postası gönderme.
+- Google Analytics ölçüm kodu: G-M2V2E2CWZV.
+- Canonical, hreflang, x-default, robots.txt ve sitemap.xml.
+- Mobil, tablet ve masaüstü uyumlu tasarım.
+- Menü ve ürün sayfası ön yükleme, sunucu önbelleği ve paralel DB sorguları.
+
+===============================================================================
+4. YÖNETİM PANELİ ÖZELLİKLERİ
+===============================================================================
+
+- Oturum açma, güvenli httpOnly oturum çerezi ve 8 saatlik oturum.
+- Varsayılan yönetici ve e-posta/parola ile oluşturulan ek kullanıcılar.
+- Şifremi unuttum ve SMTP üzerinden parola yenileme bağlantısı.
+- Giriş denemesi hız sınırlaması.
+- Hakkımızda içerik ve görsel yönetimi.
+- Çoklu referans marka logosu ve marka adı yönetimi.
+- Ürün tipi, kaplama ve bitirme şekli ekleme/düzenleme/silme.
+- Blog ekleme, düzenleme ve silme.
+- İletişim mesajlarını listeleme ve silme.
+- Slider ve pop-up yönetimi.
+- Logo yükleme.
+- SMTP ayarlarını ayrı kaydetme ve test e-postası gönderme.
+- Varsayılan iletişim bildirim e-posta adresi.
+- Tam ZIP yedeği alma ve yedekten geri yükleme.
+- Anlık veritabanı, medya ve toplam veri boyutu göstergesi.
+
+Yönetim paneli parolaları düz metin olarak veritabanında tutulmaz. Ek kullanıcı
+parolaları PBKDF2-SHA256, benzersiz salt ve 120.000 iterasyon ile özetlenir.
+Varsayılan yönetici bilgileri Vercel ortam değişkenlerinde tutulur.
+
+===============================================================================
+5. VERİTABANI
+===============================================================================
+
+Veritabanı türü: Supabase PostgreSQL.
+ORM: Drizzle ORM.
+Bağlantı: DATABASE_URL ortam değişkeni ve Supabase Supavisor transaction pooler.
+Bağlantı havuzu: Her sunucu örneğinde en fazla 5 bağlantı; prepared statement
+kullanılmaz. Bu ayar Vercel serverless ve transaction pooling ile uyumludur.
+
+Tablolar:
+
+1. content_sections
+   - Hakkımızda, kalite ve diğer kurumsal içerikler.
+   - İngilizce/Türkçe başlık, içerik, görsel ve güncelleme zamanı.
+
+2. blog_posts
+   - İngilizce/Türkçe blog başlığı, özet, zengin içerik, kapak görseli,
+     yayın durumu ve tarihler.
+
+3. site_settings
+   - Logo, slider, SMTP, varsayılan bildirim e-postası ve eski pop-up ayarları.
+   - SMTP parolası bu tabloda saklanır ve yönetim paneli GET cevabıyla tarayıcıya
+     geri gönderilmez.
+
+4. admin_users
+   - Yönetim paneli kullanıcıları, parola özeti ve aktiflik durumu.
+
+5. admin_sessions
+   - Yönetim paneli oturum belirteci ve son kullanma zamanı.
+
+6. password_reset_tokens
+   - Tek kullanımlık parola yenileme belirteçleri.
+
+7. product_items
+   - Ürün kategorisi, tip başlıkları, açıklamalar, özellikler, kullanım alanları,
+     ana görsel, galeri ve sıralama bilgisi.
+
+8. product_options
+   - Kaplama ve bitirme şekilleri, çoklu ürün tipi ilişkisi, görseller ve adlar.
+
+9. contact_messages
+   - Ad Soyad, e-posta, telefon, konu, mesaj ve kayıt zamanı.
+
+10. popups
+    - Dil, mesaj, görsel, video, yayın durumu ve tarihler.
+
+Veritabanı şeması db/schema.ts dosyasındadır. Yeni şema değişikliklerinde:
+
+pnpm db:generate
+pnpm db:migrate
+
+komutları kullanılır. Migration uygulanmadan yalnız kodu yayınlamak tablo
+değişikliklerini canlı veritabanına uygulamaz.
+
+===============================================================================
+6. SUPABASE STORAGE VE DOSYA YÜKLEME
+===============================================================================
+
+- Varsayılan bucket adı: media.
+- Bucket özel/private kalabilir.
+- Yönetici önce /api/admin/upload üzerinden kısa ömürlü imzalı yükleme bilgisi
+  alır, dosyayı doğrudan Supabase Storage'a yükler.
+- Sunucu tarafı service role anahtarı hiçbir zaman tarayıcıya gönderilmez.
+- Tarayıcıda yalnız NEXT_PUBLIC_SUPABASE_URL ve publishable/anon anahtarı vardır.
+- Medyalar /api/media/cms/... üzerinden güvenli şekilde sunulur.
+- Görseller için uzun süreli immutable tarayıcı önbelleği kullanılır.
+- Desteklenen dosyalar: JPG, PNG, WEBP, GIF, MP4 ve WEBM.
+- Tek dosya sınırı: 40 MB.
+
+===============================================================================
+7. YEDEKLEME VE GERİ YÜKLEME
+===============================================================================
+
+Yönetim Paneli > Ayarlar > Veri Yedekleme bölümünden tam yedek alınır.
+
+ZIP yedeği şunları içerir:
+- database.json: İçerikler, bloglar, ayarlar, kullanıcılar, ürünler, ürün
+  seçenekleri, iletişim mesajları ve pop-up kayıtları.
+- manifest.json: Yedek sürümü, tarih ve medya listesi.
+- media/cms/: Supabase Storage'daki bütün site görsel ve videoları.
+
+Oturumlar ve süresi dolabilen parola yenileme belirteçleri içerik yedeğine dahil
+edilmez. Yönetici kullanıcıları ve parola özetleri yedeğe dahildir; bu nedenle
+ZIP dosyası gizli ve güvenli tutulmalıdır.
+
+Tam Yedek Al butonuna basıldığında kaydetme penceresi hemen açılır. Masaüstü
+seçildikten sonra yedek hazırlanır ve seçilen dosyaya yazılır. File System Access
+API desteklemeyen tarayıcılarda dosya normal İndirilenler klasörüne indirilir.
+
+Geri yükleme sırasında önce medya dosyaları kendi Storage anahtarlarına yüklenir,
+ardından veritabanı tek transaction içinde değiştirilir. Eski JSON yedekleri de
+desteklenir. Geri yükleme canlı veriyi değiştirdiği için önce yeni bir tam yedek
+alınmalıdır.
+
+===============================================================================
+8. API UÇLARI
+===============================================================================
+
+Genel okuma ve iletişim API'leri:
+- /api/content
+- /api/blog
+- /api/products
+- /api/settings
+- /api/popups
+- /api/contact
+- /api/media/[...key]
+
+Yönetici API'leri /api/admin/ altında bulunur:
+- login, logout, forgot-password, reset-password
+- content, blog, products, settings, users, contact, popups
+- upload, test-email
+- backup ve backup/media
+
+Yönetici API'leri requireAdmin kontrolü olmadan veri değiştirmez. Medya yükleme
+anahtarları cms/ önekiyle sınırlandırılır. Blog HTML içeriğinde script, iframe,
+object, embed, olay işleyicileri ve javascript: adresleri temizlenir.
+
+===============================================================================
+9. SMTP VE E-POSTA
+===============================================================================
+
+SMTP alanları:
+- SMTP sunucusu
+- Port
+- Kullanıcı adı
+- Şifre
+- SSL/TLS güvenli bağlantı seçimi
+
+SMTP AYARLARINI KAYDET düğmesi yalnız SMTP değerlerini kaydeder. Boş bırakılan
+parola mevcut kayıtlı parolayı silmez. TEST MAİL GÖNDER, kayıtlı ayarlarla hedef
+adrese gerçek bir test e-postası gönderir ve hata olursa yönetim panelinde hata
+mesajını gösterir.
+
+İletişim formu mesajı önce contact_messages tablosuna kaydeder. SMTP ayarları ve
+contactDefaultEmail tanımlıysa ayrıca e-posta bildirimi gönderir.
+
+===============================================================================
+10. GÜVENLİK
+===============================================================================
+
+- Gizli değerler .env dosyalarında ve Vercel ortam değişkenlerinde tutulur.
+- .env.local Git'e gönderilmez.
+- SUPABASE_SERVICE_ROLE_KEY asla NEXT_PUBLIC_ adıyla tanımlanmamalıdır.
+- Yönetim oturum çerezi httpOnly, sameSite=strict ve canlı ortamda secure'dür.
+- Giriş hız sınırı: 15 dakika içinde 8 deneme.
+- Dosya türü, dosya boyutu ve Storage anahtarı doğrulanır.
+- Veritabanı sorguları Drizzle parametreli sorgularıyla çalışır.
+- SMTP parolası yönetim paneline tekrar okunmaz.
+- Yedek ve yönetici API'leri no-store/private cevap verir.
+- Git'e gerçek parola, API anahtarı veya DATABASE_URL yazılmamalıdır.
+
+===============================================================================
+11. ÖNBELLEK VE PERFORMANS
+===============================================================================
+
+- Site sayfaları 30 saniyelik yeniden doğrulamalı Next.js önbelleği kullanır.
+- Genel içerik API'leri 60 saniye cache ve 600 saniye stale-while-revalidate
+  kullanır.
+- Ana menü ve ürün kategori bağlantıları Next.js Link ile önceden yüklenir.
+- Veritabanı sorguları küçük bir bağlantı havuzunda paralel çalışabilir.
+- Ürün galerilerindeki ve sayfa altındaki görseller lazy loading kullanır.
+- Medya cevapları bir yıl immutable tarayıcı önbelleğine sahiptir.
+- Slider ve ana ürün görseli gerekli olduğunda öncelikli yüklenir.
+- Uzun sayfalarda içerik görünürlüğü ve responsive yerleşim kullanılır.
+
+===============================================================================
+12. ORTAM DEĞİŞKENLERİ
+===============================================================================
+
+Gerekli değişkenler .env.example dosyasında örneklenmiştir:
+
+DATABASE_URL
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY veya NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SERVICE_ROLE_KEY veya SUPABASE_SECRET_KEY
+SUPABASE_STORAGE_BUCKET
+ADMIN_USERNAME
+ADMIN_PASSWORD
+
+Üretimde ADMIN_PASSWORD uzun, benzersiz ve tahmin edilemez olmalıdır. Bu dosyaya
+veya GitHub'a gerçek değişken değerleri yazılmamalıdır.
+
+===============================================================================
+13. LOKAL ÇALIŞTIRMA
+===============================================================================
+
+Gereksinimler:
+- Node.js 22.13.0+
+- pnpm 11.25.0
+- Supabase proje bilgileri
+
+Adımlar:
+
+1. Projeyi açın.
+2. .env.example dosyasını .env.local adıyla kopyalayın.
+3. Gerçek ortam değişkenlerini .env.local içine yazın.
+4. Bağımlılıkları kurun:
+   pnpm install --frozen-lockfile
+5. Gerekliyse migration çalıştırın:
+   pnpm db:migrate
+6. Geliştirme sunucusunu açın:
+   pnpm dev
+7. Tarayıcıda http://localhost:3000 adresine gidin.
+8. Üretim kontrolü:
+   pnpm build
+   pnpm start
+
+===============================================================================
+14. CANLIYA ALMA – VERCEL + SUPABASE + GITHUB
+===============================================================================
+
+A. SUPABASE HAZIRLIĞI
+
+1. Supabase projesini oluşturun veya mevcut projeyi kullanın.
+2. Storage içinde private media bucket'ı oluşturun.
+3. Project Settings/API bölümünden URL, publishable/anon ve service role/secret
+   anahtarlarını alın. Service role değerini kimseyle paylaşmayın.
+4. Database/Connect bölümünden Transaction Pooler bağlantısını seçin.
+5. DATABASE_URL için port 6543 kullanan transaction pooler adresini kullanın.
+6. .env.local içine değişkenleri yazın ve pnpm db:migrate çalıştırın.
+
+B. GITHUB'A GÖNDERME
+
+1. Gizli dosyaların Git'e girmediğini kontrol edin:
+   git status
+2. Derlemeyi kontrol edin:
+   pnpm build
+3. Değişiklikleri kaydedin:
+   git add .
+   git commit -m "Açıklayıcı değişiklik mesajı"
+4. GitHub'a gönderin:
+   git push origin main
+
+Not: git add . komutundan önce .env.local, yedek ZIP dosyaları ve hassas
+dosyaların .gitignore tarafından hariç tutulduğunu mutlaka doğrulayın.
+
+C. VERCEL PROJESİ OLUŞTURMA
+
+1. https://vercel.com adresinde GitHub hesabıyla giriş yapın.
+2. Add New > Project seçin.
+3. alicintosunn/ecexfermuar deposunu içe aktarın.
+4. Framework Preset: Next.js.
+5. Root Directory: depo kökü.
+6. Install Command: pnpm install --frozen-lockfile
+7. Build Command: pnpm build
+8. Output Directory: boş/default bırakın.
+
+D. VERCEL ORTAM DEĞİŞKENLERİ
+
+Project Settings > Environment Variables bölümüne şunları ekleyin:
+- DATABASE_URL
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY veya NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+- SUPABASE_SERVICE_ROLE_KEY veya SUPABASE_SECRET_KEY
+- SUPABASE_STORAGE_BUCKET=media
+- ADMIN_USERNAME
+- ADMIN_PASSWORD
+
+Değerleri Production, Preview ve gerekiyorsa Development ortamlarına ekleyin.
+NEXT_PUBLIC_ ile başlayan değerler tarayıcıya gönderilir; service role, veritabanı
+parolası ve admin parolası kesinlikle NEXT_PUBLIC_ olmamalıdır.
+
+E. YAYINLAMA VE KONTROL
+
+1. Deploy düğmesine basın.
+2. Build başarılı olduktan sonra Vercel URL'sini açın.
+3. Şu kontrolleri yapın:
+   - / İngilizce açılıyor mu?
+   - /tr/ Türkçe açılıyor mu?
+   - /adminpanel girişi çalışıyor mu?
+   - Yönetim panelinden küçük bir görsel yüklenebiliyor mu?
+   - SMTP test e-postası gönderilebiliyor mu?
+   - İletişim mesajı kaydoluyor mu?
+   - Ürün, blog, pop-up ve referans sayfaları açılıyor mu?
+   - Tam Yedek Al ZIP dosyası oluşturuyor mu?
+   - Mobil görünümde yatay taşma var mı?
+4. Özel domain kullanılacaksa Vercel Project Settings > Domains alanından domaini
+   ekleyin ve Vercel'in verdiği DNS kayıtlarını domain sağlayıcısına girin.
+5. Domain değişirse metadataBase, canonical, sitemap ve hreflang alanlarında
+   gerçek domain kullanılmalıdır.
+
+F. SONRAKİ GÜNCELLEMELER
+
+GitHub main dalına yeni commit gönderildiğinde Vercel otomatik olarak yeni üretim
+dağıtımı oluşturur. Büyük değişikliklerden önce Yönetim Paneli > Ayarlar > Tam
+Yedek Al ile ZIP yedeği alın. Veritabanı şeması değiştiyse dağıtımdan önce veya
+kontrollü yayın akışında pnpm db:migrate çalıştırın. Sorun halinde Vercel'den bir
+önceki başarılı deployment yeniden Production'a alınabilir; içerik sorunu varsa
+yönetim panelindeki Yedeği Geri Yükle seçeneği kullanılabilir.
+
+===============================================================================
+BELGE SONU
+===============================================================================
