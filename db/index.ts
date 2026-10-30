@@ -9,7 +9,15 @@ export function getDb() {
   if (!connectionString) throw new Error("DATABASE_URL or POSTGRES_URL is not configured.");
   // Reuse one small pool for the lifetime of the Vercel function instance.
   // Creating a pool on every getDb() call exhausts Supavisor connections.
-  const client = globalDb.ecexPostgres ?? postgres(connectionString, { max: 2, prepare: false, idle_timeout: 20, connect_timeout: 10 });
+  const client = globalDb.ecexPostgres ?? postgres(connectionString, {
+    // Keep each serverless instance deliberately tiny. Supavisor multiplexes
+    // these short-lived connections across Vercel instances.
+    max: 1,
+    prepare: false,
+    idle_timeout: 5,
+    max_lifetime: 60,
+    connect_timeout: 10,
+  });
   globalDb.ecexPostgres = client;
   return drizzle(client, { schema });
 }
