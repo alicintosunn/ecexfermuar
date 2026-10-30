@@ -137,7 +137,7 @@ Varsayılan yönetici bilgileri Vercel ortam değişkenlerinde tutulur.
 Veritabanı türü: Supabase PostgreSQL.
 ORM: Drizzle ORM.
 Bağlantı: DATABASE_URL ortam değişkeni ve Supabase Supavisor transaction pooler.
-Bağlantı havuzu: Her Vercel fonksiyon örneğinde yeniden kullanılan en fazla 1
+Bağlantı havuzu: Her Vercel fonksiyon örneğinde yeniden kullanılan en fazla 4
 bağlantı; prepared statement kullanılmaz. Boş bağlantı 5 saniye içinde, bağlantı
 ömrü en geç 60 saniyede sonlandırılır. Bu yapı her sorguda yeni havuz açılmasını
 ve Supavisor bağlantı sınırının tüketilmesini önler.

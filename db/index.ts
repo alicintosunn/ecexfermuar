@@ -11,8 +11,9 @@ export function getDb() {
   // Creating a pool on every getDb() call exhausts Supavisor connections.
   const client = globalDb.ecexPostgres ?? postgres(connectionString, {
     // Keep each serverless instance deliberately tiny. Supavisor multiplexes
-    // these short-lived connections across Vercel instances.
-    max: 1,
+    // these short-lived connections across Vercel instances. Four allows the
+    // page and backup queries to run concurrently without an unbounded pool.
+    max: 4,
     prepare: false,
     idle_timeout: 5,
     max_lifetime: 60,
