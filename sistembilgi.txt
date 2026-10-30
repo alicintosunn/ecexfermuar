@@ -214,6 +214,7 @@ ZIP yedeği şunları içerir:
 - manifest.json: Yedek sürümü, tarih ve medya listesi.
 - media/cms/: Supabase Storage'daki bütün site görsel ve videoları.
 - Medya envanteri PostgreSQL bağlantısını meşgul etmeden doğrudan Supabase Storage API üzerinden okunur.
+- Tam yedek sırasında tablo okumaları Supavisor kuyruğunu kilitlememek için kontrollü ve sıralı yürütülür.
 
 Oturumlar ve süresi dolabilen parola yenileme belirteçleri içerik yedeğine dahil
 edilmez. Yönetici kullanıcıları ve parola özetleri yedeğe dahildir; bu nedenle

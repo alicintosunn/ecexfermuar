@@ -10,7 +10,17 @@ type BackupData={schemaVersion:1;createdAt:string;application:"ecexfermuar";data
 
 async function createDatabaseBackup():Promise<BackupData>{
  const db=getDb();
- const [sections,posts,settings,users,items,options,messages,popupRows]=await Promise.all([db.select().from(contentSections),db.select().from(blogPosts),db.select().from(siteSettings),db.select().from(adminUsers),db.select().from(productItems),db.select().from(productOptions),db.select().from(contactMessages),db.select().from(popups)]);
+ // Keep backup reads sequential. Supavisor transaction pooling can retain a
+ // connection while a large Promise.all queue is still waiting, which makes a
+ // browser download appear to hang even though the individual queries finish.
+ const sections=await db.select().from(contentSections);
+ const posts=await db.select().from(blogPosts);
+ const settings=await db.select().from(siteSettings);
+ const users=await db.select().from(adminUsers);
+ const items=await db.select().from(productItems);
+ const options=await db.select().from(productOptions);
+ const messages=await db.select().from(contactMessages);
+ const popupRows=await db.select().from(popups);
  return {schemaVersion:1,createdAt:new Date().toISOString(),application:"ecexfermuar",data:{contentSections:sections,blogPosts:posts,siteSettings:settings,adminUsers:users,productItems:items,productOptions:options,contactMessages:messages,popups:popupRows}};
 }
 
