@@ -26,13 +26,13 @@ export default async function Page({ params }: { params: Promise<{ path?: string
   const language=path==="tr"||path.startsWith("tr/")?"tr":"en";
   const category=path.includes("molded-plastic")||path.includes("kemik-fermuarlar")?"molded":path.includes("nylon-zippers")||path.includes("naylon-fermuarlar")?"nylon":path.includes("metal-zippers")||path.includes("metal-fermuarlar")?"metal":null;
   const db=getDb();
-  const [sections,posts,settingsRows,popupRows,items,options]=await Promise.all([
-    db.select().from(contentSections),
-    db.select().from(blogPosts).where(eq(blogPosts.published,true)).orderBy(desc(blogPosts.createdAt)),
-    db.select().from(siteSettings).where(inArray(siteSettings.key,["logoKey","sliderImages","popupEnabled","popupMessageEn","popupMessageTr","popupImageKey","popupVideoKey"])),
-    db.select().from(popups).where(and(eq(popups.language,language),eq(popups.published,true))).orderBy(desc(popups.updatedAt),desc(popups.id)),
-    category?db.select().from(productItems).where(eq(productItems.category,category)).orderBy(asc(productItems.sortOrder),asc(productItems.id)):Promise.resolve([]),
-    category?db.select().from(productOptions).where(eq(productOptions.category,category)).orderBy(asc(productOptions.sortOrder),asc(productOptions.id)):Promise.resolve([]),
-  ]);
+  // Supavisor is most reliable when a single request does not fan out several
+  // transactions at once. ISR keeps the result fast for subsequent visits.
+  const sections=await db.select().from(contentSections);
+  const posts=await db.select().from(blogPosts).where(eq(blogPosts.published,true)).orderBy(desc(blogPosts.createdAt));
+  const settingsRows=await db.select().from(siteSettings).where(inArray(siteSettings.key,["logoKey","sliderImages","popupEnabled","popupMessageEn","popupMessageTr","popupImageKey","popupVideoKey"]));
+  const popupRows=await db.select().from(popups).where(and(eq(popups.language,language),eq(popups.published,true))).orderBy(desc(popups.updatedAt),desc(popups.id));
+  const items=category?await db.select().from(productItems).where(eq(productItems.category,category)).orderBy(asc(productItems.sortOrder),asc(productItems.id)):[];
+  const options=category?await db.select().from(productOptions).where(eq(productOptions.category,category)).orderBy(asc(productOptions.sortOrder),asc(productOptions.id)):[];
   return <EcexSite initialPath={path} initialData={{sections,posts,settings:Object.fromEntries(settingsRows.map(row=>[row.key,row.value])),popups:popupRows.map(row=>({...row,language:row.language==="tr"?"tr" as const:"en" as const})),items,options:options.map(row=>({...row,optionType:row.optionType==="finish"?"finish" as const:"coating" as const}))}} />;
 }

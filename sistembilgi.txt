@@ -294,6 +294,7 @@ contactDefaultEmail tanımlıysa ayrıca e-posta bildirimi gönderir.
 - Genel içerik API'leri 60 saniye cache ve 600 saniye stale-while-revalidate
   kullanır.
 - Ana menü ve ürün kategori bağlantıları Next.js Link ile istemci tarafında geçiş yapar. Veritabanını aynı anda çok sayıda istekle yormamak için otomatik ön yükleme kapalıdır.
+- Genel ve ürün sayfası verileri Supavisor üzerinde sorgu yığılması oluşturmadan kontrollü sırayla okunur; 30 saniyelik ISR sonucu sonraki ziyaretlerde yeniden kullanır.
 - Veritabanı sorguları küçük bir bağlantı havuzunda paralel çalışabilir.
 - Ürün galerilerindeki ve sayfa altındaki görseller lazy loading kullanır.
 - Medya cevapları bir yıl immutable tarayıcı önbelleğine sahiptir.
