@@ -213,6 +213,7 @@ ZIP yedeği şunları içerir:
   seçenekleri, iletişim mesajları ve pop-up kayıtları.
 - manifest.json: Yedek sürümü, tarih ve medya listesi.
 - media/cms/: Supabase Storage'daki bütün site görsel ve videoları.
+- Medya envanteri PostgreSQL bağlantısını meşgul etmeden doğrudan Supabase Storage API üzerinden okunur.
 
 Oturumlar ve süresi dolabilen parola yenileme belirteçleri içerik yedeğine dahil
 edilmez. Yönetici kullanıcıları ve parola özetleri yedeğe dahildir; bu nedenle
