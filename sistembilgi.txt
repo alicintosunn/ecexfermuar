@@ -43,7 +43,7 @@ Ana diller:
 - HTML: React tarafından üretilen sayfa yapısı ve blog zengin metin içeriği.
 
 Temel altyapı:
-- Node.js: 22.13.0 veya üzeri.
+- Node.js: Vercel üretiminde 22.x serisine sabitlenmiştir.
 - Next.js: 16.3.6, App Router.
 - React: 19.2.6.
 - React DOM: 19.2.6.
